@@ -5,12 +5,18 @@
 <div class="hero-rails" aria-hidden="true"></div>
 <canvas aria-hidden="true" data-hero-stream></canvas>
 <script>
-  const cv = document.querySelector<HTMLCanvasElement>('[data-hero-stream]');
-  if (cv) {
+  let stop: (() => void) | undefined;
+  const mount = () => {
+    stop?.(); stop = undefined;
+    const cv = document.querySelector<HTMLCanvasElement>('[data-hero-stream]');
+    if (!cv) return;
     const run = async () => {
       const m = await import('../lib/hero-stream');
-      if (!m.lowPower()) m.mountStream(cv);
+      if (!m.lowPower() && cv.isConnected) stop = m.mountStream(cv);
     };
     'requestIdleCallback' in window ? requestIdleCallback(run, { timeout: 1500 }) : setTimeout(run, 400);
-  }
+  };
+  document.addEventListener('astro:page-load', mount);
+  document.addEventListener('astro:before-swap', () => { stop?.(); stop = undefined; });
+  document.addEventListener('motionchange', mount);
 </script>

@@ -1,18 +1,44 @@
 ---
+import { u } from '../lib/url';
 import '@fontsource/martian-mono/latin-400.css';
 import '@fontsource/martian-mono/latin-600.css';
 import '@fontsource/ibm-plex-sans/latin-400.css';
 import '@fontsource/ibm-plex-sans/latin-500.css';
 import '@fontsource/ibm-plex-sans/latin-600.css';
 import '../styles/global.css';
+// Preload the two faces used above the fold (hero heading and body copy).
+import monoUrl from '@fontsource/martian-mono/files/martian-mono-latin-600-normal.woff2?url';
+import monoRegularUrl from '@fontsource/martian-mono/files/martian-mono-latin-400-normal.woff2?url';
+import sansUrl from '@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-400-normal.woff2?url';
+import { ClientRouter } from 'astro:transitions';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import { site } from '../data/site';
+import { site, nav } from '../data/site';
+import { getProjects, getWork, getNotes } from '../lib/content';
 
-interface Props { title?: string; description?: string; type?: 'website' | 'article'; jsonLd?: object; noindex?: boolean }
-const { title, description = site.description, type = 'website', jsonLd, noindex = false } = Astro.props;
+interface Props { title?: string; description?: string; type?: 'website' | 'article'; jsonLd?: object; noindex?: boolean; image?: string }
+const { title, description = site.description, type = 'website', jsonLd, noindex = false, image = '/og/default.png' } = Astro.props;
+const ogImage = new URL(u(image), Astro.site ?? site.url).href;
 const fullTitle = title ? `${title} · ${site.name}` : site.title;
 const canonical = new URL(Astro.url.pathname, Astro.site ?? site.url).href;
+
+// Command palette index, built at compile time from the content collections.
+const [projects, work, notes] = await Promise.all([getProjects(), getWork(), getNotes()]);
+const items = [
+  ...nav.map((n) => ({ group: 'Pages', label: n.label, href: u(n.href) })),
+  { group: 'Pages', label: 'Home', href: u('/') },
+  { group: 'Pages', label: 'How this site was built', href: u('/how-this-site-was-built/') },
+  ...projects.map((p) => ({ group: 'Projects', label: p.data.title, hint: p.data.summary, href: u(`/projects/${p.data.slug}/`) })),
+  ...work.map((w) => ({ group: 'Work', label: w.data.title, hint: w.data.summary, href: u(`/work/${w.data.slug}/`) })),
+  ...notes.map((n) => ({ group: 'Notes', label: n.data.title, hint: n.data.description, href: u(`/notes/${n.data.slug}/`) })),
+  { group: 'Actions', label: 'Toggle theme', action: 'theme' },
+  { group: 'Actions', label: 'Toggle reduced motion', action: 'motion' },
+  { group: 'Actions', label: 'Copy email address', hint: site.email, action: 'email' },
+  { group: 'Actions', label: 'Download résumé (PDF)', action: 'resume' },
+  { group: 'Links', label: 'GitHub', href: site.github },
+  { group: 'Links', label: 'LinkedIn', href: site.linkedin },
+];
+const paletteJson = JSON.stringify({ items, email: site.email, resume: u(site.resume) }).replace(/</g, '\\u003c');
 ---
 <!doctype html>
 <html lang="en">
@@ -28,15 +54,32 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? site.url).href;
     <meta property="og:type" content={type} />
     <meta property="og:url" content={canonical} />
     <meta property="og:site_name" content={site.name} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={fullTitle} />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={ogImage} />
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={description} />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href={u('/favicon.svg')} type="image/svg+xml" />
     <meta name="color-scheme" content="light dark" />
-    <!-- Apply the saved theme before first paint to avoid a flash. -->
+    <link rel="preload" as="font" type="font/woff2" href={monoUrl} crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href={monoRegularUrl} crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href={sansUrl} crossorigin />
+    <!-- Before first paint: saved theme and motion preference, and a `js` flag that enables reveal states.
+         Without JS, or with reduced motion, nothing is ever hidden. -->
     <script is:inline>
-      try { var t = localStorage.getItem('theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}
+      (function () {
+        var d = document.documentElement;
+        try {
+          var t = localStorage.getItem('theme'); if (t === 'light' || t === 'dark') d.dataset.theme = t;
+          if (localStorage.getItem('motion') === 'reduce') d.dataset.motion = 'reduce';
+        } catch (e) {}
+        d.classList.add('js');
+      })();
     </script>
+    <ClientRouter />
     {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
   </head>
   <body>
@@ -46,5 +89,48 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? site.url).href;
       <slot />
     </main>
     <Footer />
+
+    <dialog id="palette" class="palette" aria-label="Command palette">
+      <div class="pal">
+        <input id="pal-input" type="text" role="combobox" aria-expanded="true" aria-controls="pal-list" aria-autocomplete="list" aria-label="Search pages, projects and actions" placeholder="Jump to a page, project or action…" autocomplete="off" spellcheck="false" />
+        <ul id="pal-list" role="listbox" aria-label="Results"></ul>
+        <p class="pal-hint" aria-hidden="true">↑ ↓ to move · Enter to select · Esc to close</p>
+        <p class="sr-only" id="pal-status" role="status" aria-live="polite"></p>
+      </div>
+    </dialog>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script id="palette-data" type="application/json" set:html={paletteJson} />
+    <script>
+      import { onPage, syncMotionButtons, toggleTheme, setReducedMotion } from '../lib/ui';
+      import { initInteractions } from '../lib/interactions';
+
+      // Keep theme + motion attributes across client-side navigations.
+      document.addEventListener('astro:before-swap', (e) => {
+        const next = (e as Event & { newDocument: Document }).newDocument.documentElement;
+        for (const a of ['data-theme', 'data-motion', 'class']) {
+          const v = document.documentElement.getAttribute(a);
+          v == null ? next.removeAttribute(a) : next.setAttribute(a, v);
+        }
+        (document.getElementById('palette') as HTMLDialogElement | null)?.close();
+      });
+
+      // Delegated, registered once: survives page swaps.
+      document.addEventListener('click', (e) => {
+        const t = e.target as HTMLElement;
+        if (t.closest('#theme-toggle')) toggleTheme();
+        if (t.closest('[data-motion-toggle]')) setReducedMotion(!(document.documentElement.dataset.motion === 'reduce'));
+        if (t.closest('[data-open-palette]')) openPalette();
+      });
+      const openPalette = async () => (await import('../lib/palette')).openPalette();
+      document.addEventListener('keydown', (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); openPalette(); }
+      });
+
+      // Warm the palette chunk so the first Cmd/Ctrl+K opens instantly.
+      'requestIdleCallback' in window ? requestIdleCallback(() => import('../lib/palette')) : setTimeout(() => import('../lib/palette'), 2000);
+
+      onPage(() => { syncMotionButtons(); initInteractions(); });
+      document.addEventListener('motionchange', () => initInteractions());
+    </script>
   </body>
 </html>

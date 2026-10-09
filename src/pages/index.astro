@@ -1,4 +1,5 @@
 ---
+import { u } from '../lib/url';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import HeroStream from '../components/HeroStream.astro';
 import ProjectCard from '../components/ProjectCard.astro';
@@ -15,7 +16,7 @@ const jsonLd = {
   name: site.name,
   jobTitle: 'Software Development Lead',
   worksFor: { '@type': 'Organization', name: 'Verizon' },
-  url: site.url,
+  url: new URL(u('/'), Astro.site ?? site.url).href,
   email: `mailto:${site.email}`,
   sameAs: [site.github, site.linkedin],
   address: { '@type': 'PostalAddress', addressRegion: 'NJ', addressCountry: 'US' },
@@ -37,7 +38,7 @@ const jsonLd = {
         I own them from the API gateway to the pixel, and I measure before I claim.
       </p>
       <div class="actions">
-        <a class="btn primary" href={site.resume} target="_blank" rel="noopener">Résumé (PDF)</a>
+        <a class="btn primary" href={u(site.resume)} target="_blank" rel="noopener">Résumé (PDF)</a>
         <a class="btn" href={site.github} rel="me noopener">GitHub</a>
         <a class="btn" href={site.linkedin} rel="me noopener">LinkedIn</a>
         <a class="btn" href={`mailto:${site.email}`}>Email</a>
@@ -59,7 +60,7 @@ const jsonLd = {
     <div class="wrap">
       <div style="display:flex;justify-content:space-between;align-items:end;gap:1rem;flex-wrap:wrap;margin-bottom:2rem">
         <h2 id="featured">Featured projects</h2>
-        <a href="/projects/" class="mono" style="font-size:.85rem">All projects →</a>
+        <a href={u('/projects/')} class="mono" style="font-size:.85rem">All projects →</a>
       </div>
       <div class="grid-cards">{featured.map((p) => <ProjectCard entry={p} />)}</div>
     </div>
@@ -71,7 +72,7 @@ const jsonLd = {
       <div class="skills">
         {skills.map((s) => <div><h3>{s.area}</h3><p>{s.items.join(' · ')}</p></div>)}
       </div>
-      <p style="margin-top:2rem"><a href="/experience/">See my experience →</a></p>
+      <p style="margin-top:2rem"><a href={u('/experience/')}>See my experience →</a></p>
     </div>
   </section>
 </BaseLayout>

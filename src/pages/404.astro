@@ -1,4 +1,5 @@
 ---
+import { u } from '../lib/url';
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 <BaseLayout title="Page not found" noindex>
@@ -11,7 +12,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         <span class="dlq mono">DLQ</span>
       </div>
       <p class="measure" style="color:var(--muted);margin-top:1.5rem">That page isn't here, so the message went to the dead-letter queue.</p>
-      <p style="margin-top:1.5rem"><a class="btn primary" href="/">Back home</a> <a class="btn" href="/projects/">See projects</a></p>
+      <p style="margin-top:1.5rem"><a class="btn primary" href={u('/')}>Back home</a> <a class="btn" href={u('/projects/')}>See projects</a></p>
     </div>
   </section>
 </BaseLayout>

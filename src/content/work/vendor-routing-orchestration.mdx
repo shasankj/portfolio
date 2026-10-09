@@ -1,49 +1,67 @@
 ---
-# Review against employer confidentiality policy before publishing.
 title: "Vendor routing and task orchestration"
 slug: "vendor-routing-orchestration"
-summary: "A weighted order-routing service and an asynchronous task-orchestration platform with built-in observability, retries and automated recovery."
-tldr: "I designed a service that routes incoming 5G orders to the right vendor by weighting, priority and order type, and a task-orchestration platform that runs background workflows asynchronously with monitoring, retries and automated failure recovery."
+summary: "A weighted order-routing service and a Node.js orchestration module for configuring workflows and running them on demand or on a schedule, with observability, retries and automated recovery."
+tldr: "I designed a service that routes incoming 5G orders to the right vendor by weighting, priority and order type, and built an orchestration module in Node.js that lets teams configure workflows and run them on demand or on a schedule. Together with a technician app, it brought a 5G home internet installation to under 8 minutes end to end, with API responses under 2 seconds."
 role: "Software Development Lead"
 status: "live"
 date: 2019-11-01
 order: 11
 featured: false
 tags: ["Distributed Systems", "Full-stack"]
-stack: ["Node.js", "Express", "GraphQL", "TypeScript", "Oracle SQL", "Prometheus", "Grafana", "OpenTelemetry"]
+stack: ["Node.js", "Express", "GraphQL", "TypeScript", "Oracle SQL", "React", "Prometheus", "Grafana", "OpenTelemetry"]
 cloud: ["Kubernetes", "Podman"]
 accentColor: "#7c3aed"
 accentColorDark: "#c4b5fd"
 links: {}
 diagram: "vendor-routing-orchestration"
-diagramAlt: "Generic flow: an order enters a routing service, which scores vendors and dispatches work to an orchestrator that runs tasks with retries and monitoring."
+diagramAlt: "Generic flow: an order enters a routing service, which scores vendors and hands work to a configurable orchestrator that runs workflows on demand or on schedule, with retries, recovery and telemetry."
 steps:
   - title: "An order arrives"
     text: "An incoming order carries a type and priority."
   - title: "Score the vendors"
-    text: "The routing service evaluates candidates by weighting, priority and order type."
-  - title: "Dispatch to the orchestrator"
-    text: "Work is handed to a background orchestrator rather than run inside the request."
+    text: "The routing service evaluates candidates by weighting, priority and order type. Vendors whose circuit is open for that market and ZIP code are excluded; if a call fails, it retries and then falls back to the next best vendor."
+  - title: "Hand off to the orchestrator"
+    text: "Work goes to a Node.js orchestration module instead of running inside the request. Workflows are configured, not hard-coded, and can be started on demand or run on a schedule."
   - title: "Run with retries and recovery"
-    text: "Tasks run asynchronously with retry handling and automated failure recovery."
+    text: "Tasks run asynchronously with retry handling and automated failure recovery, so a failed step is retried or recovered without someone watching a console."
   - title: "Observe everything"
     text: "Metrics and traces flow to Prometheus, Grafana and OpenTelemetry so operators can see order status end to end."
 decisions:
   - decision: "Weighting-based vendor routing"
     why: "Routing rules stay data, so changing priorities does not need a deploy."
     alternative: "Hard-coded routing branches."
+  - decision: "A configurable Node.js orchestration module, run on demand and on a schedule"
+    why: "Workflows are defined by configuration, so teams can add or change one without writing new service code, and the same definition serves ad hoc runs and recurring jobs."
+    alternative: "A separate script or cron job for each workflow."
+  - decision: "A circuit breaker per market, ZIP code and vendor, with retry and next-best fallback"
+    why: "A vendor outage in one region should not block orders there or penalize that vendor elsewhere. Persisting failure counts lets the threshold and cooldown be configured, and the half-open probe on a new order resets status without manual intervention."
+    alternative: "Retrying the same vendor indefinitely, or disabling a vendor globally by hand."
   - decision: "Asynchronous orchestration with first-class observability"
     why: "Long-running work should not hold a request open, and failures must be visible and recoverable."
     alternative: "Cron jobs with ad hoc logging."
 challenges:
-  - title: "Reliable calls between services"
-    story: "TODO: add a real debugging story once the confidentiality review is done."
-metrics: []
-next:
-  - "TODO: add what comes next once the confidentiality review is done."
-draft: true
+  - title: "Vendor APIs that were not always available"
+    story: "Routing to the highest-scored vendor assumed its API was up. When a vendor API failed, the order failed with it. I added an availability check to the routing path: on a failed call the router retries, and if the vendor is still unavailable it falls back to the next best vendor by weighted score. To stop wasting calls on a vendor that is down, I persisted failures in a table keyed by market, ZIP code and vendor. Once a vendor's failure count passes a configured threshold, it is excluded from the candidate set for that market and ZIP until a configured cooldown expires. After the cooldown, the next new order probes the vendor again: a success resets its status, and a failure starts another cooldown. In effect, it is a circuit breaker with closed, open and half-open states, scoped per market and ZIP code rather than per vendor globally, because a vendor can be healthy in one region and failing in another."
+metrics:
+  - label: "API response time"
+    value: "under 2 s"
+    note: "confirmed with load testing"
+  - label: "Total 5G home internet installation time"
+    value: "under 8 min"
+    note: "end to end"
+  - label: "Criteria used to route an order to a vendor"
+    value: "3"
+    note: "weighting, priority, order type"
+  - label: "Ways to start a workflow"
+    value: "2"
+    note: "on demand and on a schedule"
+next: []
+draft: false
 ---
 
-{/* Review against employer confidentiality policy before publishing. */}
+Orders had to reach the right vendor without a person deciding each time, and the background work around them had to survive failures without someone watching a console. Beyond routing, teams needed a way to define multi-step workflows and run them either when someone asks or on a timetable.
 
-Orders had to reach the right vendor without a person deciding each time, and the background work around them had to survive failures without someone watching a console. This page describes the architecture generically, with no internal names, data or code.
+I built an orchestration module in Node.js for exactly that: workflows are configured, can be triggered on demand or scheduled, and run asynchronously with retries, automated recovery and metrics. I load tested the services, and API responses stayed under 2 seconds. Combined with a technician-facing app, the total 5G home internet installation came down to under 8 minutes.
+
+This page describes the architecture generically, with no internal names, data or code.

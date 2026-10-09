@@ -6,6 +6,8 @@ export interface Role {
   summary: string;
   bullets: string[];
   tech: string[];
+  /** Optional grouped tech list (used for the latest role). */
+  techGroups?: { label: string; items: string[] }[];
 }
 
 export const experience: Role[] = [
@@ -24,7 +26,17 @@ export const experience: Role[] = [
       'Built a technician dashboard and mobile app for 5G field installs, with installs consistently completing in under 8 minutes.',
       'Moved delivery to containerized CI/CD on Kubernetes and OpenShift behind API gateways; run design reviews and mentor engineers.',
     ],
-    tech: ['Kafka', 'Flink', 'Spring Boot', 'Node.js', 'GraphQL', 'React', 'TypeScript', 'Redis', 'LangGraph', 'A2A', 'Kubernetes', 'OpenShift', 'OpenTelemetry'],
+    tech: [],
+    techGroups: [
+      { label: 'Languages and frameworks', items: ['TypeScript', 'JavaScript', 'React', 'Angular', 'Node.js', 'Express', 'GraphQL', 'Java', 'Spring Boot (MVC)', 'Play Framework', 'Python', 'FastAPI', 'Tailwind CSS'] },
+      { label: 'Messaging and distributed systems', items: ['Kafka', 'Apache Flink', 'Pulsar', 'RabbitMQ', 'gRPC', 'Microservices', 'Event-driven architecture', 'API gateways', 'REST APIs', 'Async and callback services'] },
+      { label: 'Data and caching', items: ['PostgreSQL', 'Oracle SQL and PL', 'MongoDB', 'Redis', 'Caffeine'] },
+      { label: 'Cloud and delivery', items: ['AWS', 'Serverless', 'Docker', 'Kubernetes', 'OpenShift', 'Podman', 'Linux', 'CI/CD', 'GitLab Runners', 'Git'] },
+      { label: 'Observability and testing', items: ['Prometheus', 'Grafana', 'OpenTelemetry', 'Cypress', 'JUnit', 'Load testing'] },
+      { label: 'Workflow orchestration', items: ['Prefect', 'Netflix Conductor', 'Custom Node.js orchestrator'] },
+      { label: 'Agentic AI', items: ['LangGraph', 'LangChain', 'Google A2A', 'Claude', 'Claude Code', 'Gemini', 'GPT', 'Llama', 'GitHub Copilot'] },
+      { label: 'Also from my personal projects', items: ['RAG', 'MCP', 'Hybrid search (pgvector + full-text)', 'Claude Haiku', 'fastembed', 'Guardrails and output verification', 'DynamoDB', 'Lambda', 'API Gateway', 'SNS', 'SQS', 'SES', 'RDS'] },
+    ],
   },
   {
     company: 'Caterpillar',

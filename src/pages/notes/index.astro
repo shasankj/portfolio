@@ -1,4 +1,5 @@
 ---
+import { u } from '../../lib/url';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getNotes } from '../../lib/content';
 const notes = await getNotes();
@@ -12,7 +13,7 @@ const fmt = new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'short', 
       {notes.length === 0 ? <p>Nothing published yet.</p> : (
         <ul class="list">
           {notes.map((n) => (
-            <li><a href={`/notes/${n.data.slug}/`}><time datetime={n.data.date.toISOString()}>{fmt.format(n.data.date)}</time>
+            <li><a href={u(`/notes/${n.data.slug}/`)}><time datetime={n.data.date.toISOString()}>{fmt.format(n.data.date)}</time>
               <span><b class="mono">{n.data.title}{n.data.draft ? ' (draft)' : ''}</b><br /><span style="color:var(--muted)">{n.data.description}</span></span></a></li>
           ))}
         </ul>

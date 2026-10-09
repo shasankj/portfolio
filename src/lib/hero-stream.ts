@@ -1,3 +1,5 @@
+import { reducedMotion } from './ui';
+
 /**
  * Hero "event stream": a few faint packets travel along horizontal rails, like messages through a pipeline.
  * Everything you are likely to tweak is in CONFIG. See docs/ANIMATION.md.
@@ -23,10 +25,10 @@ export const CONFIG = {
 
 type P = { t: number; speed: number; lane: number };
 
-export function mountStream(canvas: HTMLCanvasElement) {
+export function mountStream(canvas: HTMLCanvasElement): () => void {
   const ctx = canvas.getContext('2d');
-  if (!ctx) return;
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!ctx) return () => {};
+  const reduce = reducedMotion();
   const { rails } = CONFIG;
   const mouse = { x: -999, y: -999 };
   let w = 0, h = 0, raf = 0, visible = true, last = 0;
@@ -90,15 +92,25 @@ export function mountStream(canvas: HTMLCanvasElement) {
   const start = () => { if (!raf && !reduce && visible && !document.hidden) { last = performance.now(); raf = requestAnimationFrame(loop); } };
   const stop = () => { cancelAnimationFrame(raf); raf = 0; };
 
-  new IntersectionObserver(([e]) => { visible = e.isIntersecting; visible ? start() : stop(); }).observe(canvas);
-  document.addEventListener('visibilitychange', () => (document.hidden ? stop() : start()));
-  canvas.parentElement?.addEventListener('pointermove', (e) => {
-    const r = canvas.getBoundingClientRect(); mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top;
-  });
-  canvas.parentElement?.addEventListener('pointerleave', () => { mouse.x = mouse.y = -999; });
-  new ResizeObserver(resize).observe(canvas);
+  const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; visible ? start() : stop(); });
+  io.observe(canvas);
+  const onVis = () => (document.hidden ? stop() : start());
+  document.addEventListener('visibilitychange', onVis);
+  const host = canvas.parentElement;
+  const onMove = (e: PointerEvent) => { const r = canvas.getBoundingClientRect(); mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top; };
+  const onLeave = () => { mouse.x = mouse.y = -999; };
+  host?.addEventListener('pointermove', onMove);
+  host?.addEventListener('pointerleave', onLeave);
+  const ro = new ResizeObserver(resize);
+  ro.observe(canvas);
   resize(); start();
   canvas.classList.add('on');
+  return () => {
+    stop(); io.disconnect(); ro.disconnect();
+    document.removeEventListener('visibilitychange', onVis);
+    host?.removeEventListener('pointermove', onMove);
+    host?.removeEventListener('pointerleave', onLeave);
+  };
 }
 
 /** True on devices where an always-on canvas is not worth it. Falls back to the static rails. */

@@ -11,6 +11,6 @@ export async function getStaticPaths() {
 const { entry, prev, next } = Astro.props;
 const { Content } = await render(entry);
 ---
-<BaseLayout title={entry.data.title} description={entry.data.summary} type="article">
+<BaseLayout title={entry.data.title} description={entry.data.summary} type="article" image={`/og/work-${entry.data.slug}.png`}>
   <CaseStudy entry={entry} base="/work" prev={prev} next={next} banner={entry.data.draft ? 'Draft: review against employer confidentiality policy before publishing. Not included in production builds.' : undefined}><Content /></CaseStudy>
 </BaseLayout>

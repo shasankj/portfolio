@@ -11,7 +11,7 @@ featured: true
 tags: ["AWS", "Full-stack", "Distributed Systems"]
 stack: ["React 19", "Vite", "Framer Motion", "Node.js", "PostgreSQL", "DynamoDB", "JWT"]
 cloud: ["API Gateway", "Lambda", "RDS", "DynamoDB", "SNS", "SQS", "SES", "CloudFront"]
-accentColor: "#b45309"
+accentColor: "#9a4a07"
 accentColorDark: "#fbbf24"
 links:
   live: "https://dla0gzpanyc4d.cloudfront.net/"
@@ -65,13 +65,22 @@ challenges:
     story: "The student index did not project row and column, so the dashboard rendered undefined seats. I recreated the index with those attributes included."
   - title: "Emails sat in the queue and never sent"
     story: "Messages piled up because the sendEmails function or its SQS trigger did not exist yet, and later because SES was still in sandbox mode and the recipient was not verified. Both are now in the build checklist and the workbook has a runbook for redriving the dead-letter queue."
-metrics: []
+metrics:
+  - label: "Lambda functions"
+    value: "22"
+    note: "21 API endpoints plus one queue consumer"
+  - label: "Domain events routed through SNS and SQS"
+    value: "4"
+    note: "signup, signup review, booking, cancellation"
+  - label: "User roles with enforced permissions"
+    value: "3"
+    note: "Pup, Trainer, Head Dog"
 readiness:
-  tests: "TODO: no automated tests are in the repository. Handlers were exercised against fake database, DynamoDB, SNS and SES clients during development, but that harness was not kept."
-  cicd: "TODO: no CI and no infrastructure as code yet. The backend was built by hand in the AWS console, with a rebuild checklist in the workbook. A SAM or CDK template is the next step."
+  tests: "No automated tests are in the repository yet. During development I exercised each handler against fake database, DynamoDB, SNS and SES clients."
+  cicd: "The backend was built by hand in the AWS console, with a step-by-step rebuild checklist in the workbook. A SAM or CDK template and a CI pipeline are the next step."
   observability: "CloudWatch logs per function, and a dead-letter queue for failed emails. Unexpected errors return a generic 500 and are logged only server-side."
   security: "JWT with a one-hour lifetime and role checks on every protected handler, ownership checks for teachers, parameterized SQL only, and least-privilege roles. Known gaps I track: database TLS does not verify the certificate, secrets live in environment variables rather than Secrets Manager, and the API needs CORS headers on real responses."
-  cost: "Pay-per-use serverless services plus one RDS instance. TODO: measured monthly cost."
+  cost: "Pay-per-use serverless services plus one RDS instance."
 next:
   - "Describe the whole backend as SAM or CDK so it deploys and tears down in one command."
   - "Add automated tests and a CI pipeline, then verify the RDS certificate and move secrets to Secrets Manager."

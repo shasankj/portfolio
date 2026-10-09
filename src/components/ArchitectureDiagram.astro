@@ -2,11 +2,15 @@
 // Diagram conventions (see CLAUDE.md): src/diagrams/<name>.svg, elements carry data-step="N".
 // A node and the edges leading INTO it share its step number.
 import type { CaseStudy } from '../lib/content';
+import { renderMermaidDiagram } from '../lib/mermaid-diagram';
 interface Props { entry: CaseStudy }
 const { entry } = Astro.props;
 const { diagram, diagramAlt, steps, title } = entry.data;
 const files = import.meta.glob('../diagrams/*.svg', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
-const svg = diagram ? files[`../diagrams/${diagram}.svg`] : undefined;
+const mmds = import.meta.glob('../diagrams/*.mmd', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
+// Hand-authored SVG wins; otherwise render <diagram>.mmd with Mermaid at build time.
+const mmd = diagram ? mmds[`../diagrams/${diagram}.mmd`] : undefined;
+const svg = diagram ? (files[`../diagrams/${diagram}.svg`] ?? (mmd ? await renderMermaidDiagram(mmd) : undefined)) : undefined;
 ---
 {svg ? (
   <div class="arch" data-arch>

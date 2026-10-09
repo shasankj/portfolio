@@ -22,7 +22,8 @@ const caseStudy = z.object({
   cloud: z.array(z.string()).default([]),
   accentColor: hex, // light theme; must reach 4.5:1 on the paper background
   accentColorDark: hex.optional(), // dark theme; defaults to accentColor
-  links: z.object({ live: z.url().optional(), repo: z.url().optional(), video: z.url().optional() }).default({}),
+  // A bare `links:` in YAML parses as null, so treat null like missing.
+  links: z.preprocess((v) => v ?? {}, z.object({ live: z.url().optional(), repo: z.url().optional(), video: z.url().optional() })),
   // Optional raster cover. If omitted, a generated pattern in the accent color is used.
   cover: z.string().optional(),
   coverAlt: z.string().optional(),

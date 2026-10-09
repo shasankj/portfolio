@@ -1,17 +1,19 @@
 ---
+import { u } from '../lib/url';
 import type { CaseStudy } from '../lib/content';
 import Cover from './Cover.astro';
 import Badges from './Badges.astro';
-interface Props { entry: CaseStudy; base?: string }
-const { entry, base = '/projects' } = Astro.props;
+interface Props { entry: CaseStudy; base?: string; level?: 2 | 3 }
+const { entry, base = '/projects', level = 3 } = Astro.props;
+const Heading = `h${level}` as 'h2' | 'h3';
 const d = entry.data;
 ---
-<a class="card" href={`${base}/${d.slug}/`} data-pa data-tags={d.tags.join('|')}
+<a class="card" href={u(`${base}/${d.slug}/`)} data-pa data-tags={d.tags.join('|')}
    style={`--pa-light:${d.accentColor};--pa-dark:${d.accentColorDark ?? d.accentColor}`}>
-  <div class="cover"><Cover seed={d.slug} label={d.status.toUpperCase()} /></div>
+  <div class="cover" transition:name={`cover-${d.slug}`}><Cover seed={d.slug} label={d.status.toUpperCase()} /></div>
   <div class="body">
     <span class="status">{d.status === 'live' && <span class="dot-live" aria-hidden="true"></span>}{d.status.replace('-', ' ')}</span>
-    <h3>{d.title}</h3>
+    <Heading class="card-title" transition:name={`title-${d.slug}`}>{d.title}</Heading>
     <p>{d.summary}</p>
     <Badges items={d.stack.slice(0, 5)} />
   </div>

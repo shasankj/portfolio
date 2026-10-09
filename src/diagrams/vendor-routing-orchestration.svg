@@ -4,7 +4,7 @@
   <path class="edge" id="vendor-routing-orchestration-e1" data-step="2" d="M150,60 L190,60" marker-end="url(#arrow)"/>
   <g class="node accent" data-step="2"><rect x="190" y="30" width="140" height="60" rx="2"/><text x="260.0" y="56">Router</text><text class="sub" x="260.0" y="74">weighted scoring</text></g>
   <path class="edge" id="vendor-routing-orchestration-e2" data-step="3" d="M330,60 L370,60" marker-end="url(#arrow)"/>
-  <g class="node" data-step="3"><rect x="370" y="30" width="140" height="60" rx="2"/><text x="440.0" y="56">Orchestrator</text><text class="sub" x="440.0" y="74">async tasks</text></g>
+  <g class="node" data-step="3"><rect x="370" y="30" width="140" height="60" rx="2"/><text x="440.0" y="56">Orchestrator</text><text class="sub" x="440.0" y="74">config-driven</text></g>
   <path class="edge" id="vendor-routing-orchestration-e3" data-step="4" d="M510,60 L550,60" marker-end="url(#arrow)"/>
   <g class="node" data-step="4"><rect x="550" y="30" width="140" height="60" rx="2"/><text x="620.0" y="56">Retries</text><text class="sub" x="620.0" y="74">auto recovery</text></g>
   <path class="edge" id="vendor-routing-orchestration-e4" data-step="5" d="M690,60 L730,60" marker-end="url(#arrow)"/>

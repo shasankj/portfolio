@@ -4,7 +4,7 @@ export const site = {
   title: 'Shasank Jabade · Lead engineer, distributed systems and agentic AI',
   description:
     'Software Development Lead with 7+ years building event-driven platforms and agentic AI systems, from the API gateway to the pixel.',
-  url: 'https://shasankj.github.io', // TODO: update with the final GitHub Pages URL or custom domain (also in astro.config.mjs)
+  url: process.env.SITE_URL ?? 'https://shasankj.github.io', // set SITE_URL (and BASE_PATH) at build time; see astro.config.mjs
   email: 'shasank306@gmail.com',
   github: 'https://github.com/shasankj',
   linkedin: 'https://www.linkedin.com/in/shasank-j-10838a7b',

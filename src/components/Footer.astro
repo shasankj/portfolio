@@ -1,4 +1,5 @@
 ---
+import { u } from '../lib/url';
 import { site } from '../data/site';
 ---
 <footer class="site-footer">
@@ -11,10 +12,11 @@ import { site } from '../data/site';
       <li><a href={`mailto:${site.email}`}>Email</a></li>
       <li><a href={site.github} rel="me noopener">GitHub</a></li>
       <li><a href={site.linkedin} rel="me noopener">LinkedIn</a></li>
-      <li><a href={site.resume} target="_blank" rel="noopener">Résumé (PDF)</a></li>
+      <li><a href={u(site.resume)} target="_blank" rel="noopener">Résumé (PDF)</a></li>
+      <li><button class="linklike" type="button" data-motion-toggle aria-pressed="false">Reduce motion</button></li>
     </ul>
     <p style="margin:0;width:100%">
-      <a href="/how-this-site-was-built/">How this site was built</a> · © {new Date().getFullYear()} {site.name}
+      <a href={u('/how-this-site-was-built/')}>How this site was built</a> · © {new Date().getFullYear()} {site.name}
     </p>
   </div>
 </footer>

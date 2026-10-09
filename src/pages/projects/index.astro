@@ -13,25 +13,25 @@ const used = tags.filter((t) => projects.some((p) => p.data.tags.includes(t)));
       <h1 style="margin:.5rem 0 1rem">Things I've built and shipped</h1>
       <p class="measure" style="color:var(--muted)">Each one is a case study: the problem, the architecture, the trade-offs, and what broke along the way.</p>
 
-      <div class="filters" role="group" aria-label="Filter projects by tag" data-filters hidden>
+      <div class="filters" role="group" aria-label="Filter projects by tag" data-filters>
         <button class="chip" type="button" aria-pressed="true" data-tag="all">All</button>
         {used.map((t) => <button class="chip" type="button" aria-pressed="false" data-tag={t}>{t}</button>)}
       </div>
       <p class="mono" style="font-size:.8rem;color:var(--muted)" role="status" aria-live="polite" data-count></p>
 
       <div class="grid-cards" data-grid style="margin-top:1rem">
-        {projects.map((p) => <ProjectCard entry={p} />)}
+        {projects.map((p) => <ProjectCard entry={p} level={2} />)}
       </div>
     </div>
   </section>
 </BaseLayout>
 <script>
+  document.addEventListener('astro:page-load', () => {
   // Progressive enhancement: without JS the filter bar stays hidden and every card is visible.
   const bar = document.querySelector<HTMLElement>('[data-filters]');
   const cards = [...document.querySelectorAll<HTMLElement>('[data-grid] .card')];
   const status = document.querySelector<HTMLElement>('[data-count]');
   if (bar) {
-    bar.hidden = false;
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const apply = (tag: string) => {
       let shown = 0;
@@ -51,4 +51,5 @@ const used = tags.filter((t) => projects.some((p) => p.data.tags.includes(t)));
       apply(b.dataset.tag!);
     });
   }
+  });
 </script>

@@ -1,6 +1,8 @@
 ---
+import { u } from '../lib/url';
 import type { CaseStudy } from '../lib/content';
 import Badges from './Badges.astro';
+import Cover from './Cover.astro';
 import ArchitectureDiagram from './ArchitectureDiagram.astro';
 interface Props { entry: CaseStudy; base: '/projects' | '/work'; prev?: CaseStudy; next?: CaseStudy; banner?: string }
 const { entry, base, prev, next, banner } = Astro.props;
@@ -17,9 +19,10 @@ const links = [
 <article data-pa style={`--pa-light:${d.accentColor};--pa-dark:${d.accentColorDark ?? d.accentColor}`}>
   <header class="cs-hero">
     <div class="wrap">
+      <div class="cs-cover" transition:name={`cover-${d.slug}`}><Cover seed={d.slug} label={d.status.toUpperCase()} /></div>
       {banner && <p class="banner">{banner}</p>}
-      <a class="eyebrow" href={base === '/projects' ? '/projects/' : '/experience/'} style="text-decoration:none">← {base === '/projects' ? 'All projects' : 'Experience'}</a>
-      <h1>{d.title}</h1>
+      <a class="eyebrow" href={u(base === '/projects' ? '/projects/' : '/experience/')} style="text-decoration:none">← {base === '/projects' ? 'All projects' : 'Experience'}</a>
+      <h1 transition:name={`title-${d.slug}`}>{d.title}</h1>
       <div class="cs-meta">
         <span>{d.role}</span>{base === '/projects' && <span>{fmt.format(d.date)}</span>}<span style="text-transform:capitalize">{d.status.replace('-', ' ')}</span>
       </div>
@@ -28,7 +31,6 @@ const links = [
       {links.length > 0 ? (
         <div class="links">
           {links.map((l) => <a class:list={['btn', { primary: l.primary }]} href={l.href} target="_blank" rel="noopener">{l.label} ↗</a>)}
-          {!d.links.video && base === '/projects' && <span class="todo" style="padding:.5rem .9rem;font-size:.85rem"><b>TODO:</b> 2-min video link</span>}
         </div>
       ) : null}
     </div>
@@ -102,8 +104,8 @@ const links = [
 
     {(prev || next) && (
       <nav class="pn" aria-label="More case studies">
-        {prev ? <a href={`${base}/${prev.data.slug}/`}><span class="eyebrow">← Previous</span><b>{prev.data.title}</b></a> : <span></span>}
-        {next ? <a href={`${base}/${next.data.slug}/`}><span class="eyebrow">Next →</span><b>{next.data.title}</b></a> : <span></span>}
+        {prev ? <a href={u(`${base}/${prev.data.slug}/`)}><span class="eyebrow">← Previous</span><b>{prev.data.title}</b></a> : <span></span>}
+        {next ? <a href={u(`${base}/${next.data.slug}/`)}><span class="eyebrow">Next →</span><b>{next.data.title}</b></a> : <span></span>}
       </nav>
     )}
   </div>

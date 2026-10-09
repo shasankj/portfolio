@@ -1,4 +1,5 @@
 ---
+import { u } from '../lib/url';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Badges from '../components/Badges.astro';
 import { experience } from '../data/experience';
@@ -13,11 +14,20 @@ const work = await getWork();
       <div class="timeline" data-timeline>
         {experience.map((r) => (
           <article class="role">
-            <h3>{r.title}, {r.company}</h3>
+            <h2 class="role-title">{r.title}, {r.company}</h2>
             <span class="period">{r.period}</span>
             <p class="measure">{r.summary}</p>
             <ul class="b">{r.bullets.map((b) => <li>{b}</li>)}</ul>
-            <Badges items={r.tech} />
+            {r.techGroups ? (
+              <div class="tech-groups">
+                {r.techGroups.map((g) => (
+                  <div>
+                    <h3 class="eyebrow">{g.label}</h3>
+                    <Badges items={g.items} />
+                  </div>
+                ))}
+              </div>
+            ) : <Badges items={r.tech} />}
           </article>
         ))}
       </div>
@@ -25,7 +35,7 @@ const work = await getWork();
         <div style="margin-top:4rem">
           <h2 style="margin-bottom:1.5rem">Work case studies</h2>
           <ul class="list">
-            {work.map((w) => <li><a href={`/work/${w.data.slug}/`}><span class="mono" style="font-size:.78rem;color:var(--muted)">Verizon</span><span><b class="mono">{w.data.title}</b><br /><span style="color:var(--muted)">{w.data.summary}</span></span></a></li>)}
+            {work.map((w) => <li><a href={u(`/work/${w.data.slug}/`)}><span class="mono" style="font-size:.78rem;color:var(--muted)">Verizon</span><span><b class="mono">{w.data.title}</b><br /><span style="color:var(--muted)">{w.data.summary}</span></span></a></li>)}
           </ul>
         </div>
       )}
