@@ -2,7 +2,7 @@
 title: "Care Bot"
 slug: "care-bot"
 summary: "An insurance and pharmacy assistant that answers only from cited sources, says I don't know without evidence, and never gives medical advice."
-tldr: "Care Bot answers insurance and drug questions from three sources: Medicare PDFs and FDA labels through hybrid RAG on Postgres with pgvector, and a patient's exact records through an MCP server. A LangGraph agent routes each question, and code-enforced guards around the model reject any answer that is uncited or contains a number that is not in the sources."
+tldr: "Care Bot answers insurance and drug questions from three sources: Medicare PDFs and FDA labels through hybrid RAG on Postgres with pgvector, and a patient's exact records through an MCP server. A LangGraph agent routes each question, and code-enforced guards around the model reject any answer that is uncited or contains a number that is not in the sources. It is hosted on AWS EC2, in Docker behind Caddy with automatic HTTPS."
 role: "Designer and developer"
 status: "live"
 date: 2026-10-07
@@ -81,7 +81,7 @@ metrics:
     note: "no model call"
 readiness:
   tests: "221 backend tests (guards, every graph branch with fake LLMs, API, MCP over a real stdio subprocess) and 15 frontend tests, plus scripted retrieval and live end-to-end evaluations kept in the repo."
-  cicd: "Multi-stage Docker build and a compose file for a single EC2 host behind Caddy with automatic HTTPS. TODO: no CI pipeline runs the tests on push yet."
+  cicd: "Hosted on a single AWS EC2 host: a multi-stage Docker build and a compose file run the app behind Caddy with automatic HTTPS. TODO: no CI pipeline runs the tests on push yet."
   observability: "Append-only audit log of every patient-data access (question hash and length, never the text), a health endpoint, and error shaping with secrets redacted. Distributed tracing and per-stage metrics are not built yet."
   security: "HttpOnly signed session cookie, Origin check for CSRF, rate limits, security headers, a read-only database role for the running app, fenced untrusted text, and non-root container. Sign-in is simulated and patients are synthetic, so this is a demo, not production authentication."
   cost: "Three small Haiku calls per answered turn, local embeddings, and a hard cap on output tokens. TODO: measured cost per conversation."

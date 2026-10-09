@@ -13,7 +13,7 @@ I'm looking for senior and lead roles in AI engineering, AI delivery and automat
 ## Projects
 
 ### [Care Bot](https://github.com/shasankj/healthcare-chatbot) · [live demo](https://3-135-57-21.sslip.io/)
-An insurance and pharmacy assistant that answers only from cited sources, says "I don't know" without evidence, and never gives medical advice. Hybrid RAG on Postgres with pgvector, an MCP server with four read-only tools for patient records, and a LangGraph agent wrapped in four layers of code-enforced guardrails. 37 of 37 live end-to-end evaluation cases pass; 221 backend and 15 frontend tests.
+An insurance and pharmacy assistant that answers only from cited sources, says "I don't know" without evidence, and never gives medical advice. Hybrid RAG on Postgres with pgvector, an MCP server with four read-only tools for patient records, and a LangGraph agent wrapped in four layers of code-enforced guardrails, hosted on AWS EC2 with Docker and Caddy. 37 of 37 live end-to-end evaluation cases pass; 221 backend and 15 frontend tests.
 *Claude Haiku 4.5 · LangGraph · MCP · FastAPI · pgvector · React · TypeScript* · [case study](https://shasankj.github.io/portfolio/projects/care-bot/)
 
 ### [Kenzo Pawsitive Academy](https://github.com/shasankj/kenzo-pawsitive-academy) · [live demo](https://dla0gzpanyc4d.cloudfront.net/)
