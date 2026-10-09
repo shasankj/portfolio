@@ -1,0 +1,19 @@
+<svg class="diagram" viewBox="0 0 1060 360" xmlns="http://www.w3.org/2000/svg" focusable="false">
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1 L9 5 L0 9" fill="none" stroke="var(--muted)" stroke-width="1.6"/></marker></defs>
+  <g class="node" data-step="1"><rect x="10" y="150" width="140" height="60" rx="2"/><text x="80.0" y="176">Browser</text><text class="sub" x="80.0" y="194">React + SSE</text></g>
+  <path class="edge" id="cb-e1" data-step="2" d="M150,180 L190,180" marker-end="url(#arrow)"/>
+  <g class="node accent" data-step="2"><rect x="190" y="150" width="140" height="60" rx="2"/><text x="260.0" y="176">Input guard</text><text class="sub" x="260.0" y="194">code, no model</text></g>
+  <path class="edge" id="cb-e2" data-step="3" d="M330,180 L370,180" marker-end="url(#arrow)"/>
+  <g class="node" data-step="3"><rect x="370" y="150" width="140" height="60" rx="2"/><text x="440.0" y="176">Gate</text><text class="sub" x="440.0" y="194">stricter-only</text></g>
+  <path class="edge" id="cb-e3a" data-step="4" d="M510,180 C530,180 530,80 550,80" marker-end="url(#arrow)"/>
+  <path class="edge" id="cb-e3b" data-step="4" d="M510,180 C530,180 530,280 550,280" marker-end="url(#arrow)"/>
+  <g class="node" data-step="4"><rect x="550" y="50" width="140" height="60" rx="2"/><text x="620.0" y="76">Hybrid RAG</text><text class="sub" x="620.0" y="94">pgvector + FTS</text></g>
+  <g class="node" data-step="4"><rect x="550" y="250" width="140" height="60" rx="2"/><text x="620.0" y="276">MCP tools</text><text class="sub" x="620.0" y="294">4 read-only</text></g>
+  <path class="edge" id="cb-e4a" data-step="5" d="M690,80 C710,80 710,180 730,180" marker-end="url(#arrow)"/>
+  <path class="edge" id="cb-e4b" data-step="5" d="M690,280 C710,280 710,180 730,180" marker-end="url(#arrow)"/>
+  <g class="node" data-step="5"><rect x="730" y="150" width="140" height="60" rx="2"/><text x="800.0" y="176">Answer</text><text class="sub" x="800.0" y="194">cited draft</text></g>
+  <path class="edge" id="cb-e5" data-step="6" d="M870,180 L910,180" marker-end="url(#arrow)"/>
+  <g class="node accent" data-step="6"><rect x="910" y="150" width="140" height="60" rx="2"/><text x="980.0" y="176">Output guard</text><text class="sub" x="980.0" y="194">cites + numbers</text></g>
+  <path class="edge" id="cb-e6" data-step="7" d="M980,210 C980,340 80,340 80,210" marker-end="url(#arrow)"/>
+  <text class="sub" data-step="7" x="530" y="334" text-anchor="middle" style="fill:var(--muted);font-size:11px">verified answer, streamed as progress events</text>
+</svg>

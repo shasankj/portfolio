@@ -1,0 +1,86 @@
+---
+title: "Kenzo Pawsitive Academy"
+slug: "kenzo-pawsitive-academy"
+summary: "A class-booking app for a dog training academy: pick an exact seat on a cinema-style map, with race-safe booking and an event-driven email pipeline on serverless AWS."
+tldr: "A React single-page app on a serverless AWS backend where pups reserve a specific seat in a class. DynamoDB conditional transactions make double-booking impossible, Postgres constraints protect the schedule, and SNS to SQS to SES sends confirmations without ever blocking a request."
+role: "Designer and developer"
+status: "live"
+date: 2026-10-05
+order: 2
+featured: true
+tags: ["AWS", "Full-stack", "Distributed Systems"]
+stack: ["React 19", "Vite", "Framer Motion", "Node.js", "PostgreSQL", "DynamoDB", "JWT"]
+cloud: ["API Gateway", "Lambda", "RDS", "DynamoDB", "SNS", "SQS", "SES", "CloudFront"]
+accentColor: "#b45309"
+accentColorDark: "#fbbf24"
+links:
+  live: "https://dla0gzpanyc4d.cloudfront.net/"
+  repo: "https://github.com/shasankj/kenzo-pawsitive-academy"
+diagram: "kenzo-pawsitive-academy"
+diagramAlt: "Request path from the React app through API Gateway to a Lambda that uses Postgres and DynamoDB, then an event path through SNS, SQS, the sendEmails Lambda and SES."
+steps:
+  - title: "The app calls the API"
+    text: "The React SPA sends JSON with a Bearer JWT. All network access goes through one api.js module, and an expired token signs the user out."
+  - title: "API Gateway routes the request"
+    text: "One REST route per operation (login, book, myBookings, cancelClass and so on) in front of a Lambda per endpoint."
+  - title: "A Lambda checks identity and input"
+    text: "Every protected handler verifies the JWT and role first. Identity comes from the token, never the body, and all input is validated with length limits before touching a database."
+  - title: "Postgres validates, DynamoDB owns the seat"
+    text: "One Postgres query checks the class, room and account status. A DynamoDB transaction then writes the seat item and a one-seat-per-student marker together, with conditions, so a taken seat fails cleanly."
+  - title: "The event is published"
+    text: "After a successful write the Lambda publishes an event such as BookingConfirmed to SNS. Publishing is best effort and never fails the request."
+  - title: "SQS buffers the work"
+    text: "A subscription filter routes email-relevant event types into a queue. After five failed receives a message moves to a dead-letter queue."
+  - title: "sendEmails does the sending"
+    text: "A Lambda outside the VPC reads the queue in batches, reports per-item failures, and never queries the database because each event carries everything the email needs."
+  - title: "SES delivers"
+    text: "Plain-text confirmations, signup decisions and cancellation notices go out through SES."
+decisions:
+  - decision: "Seat locks in DynamoDB with a conditional TransactWrite"
+    why: "The seat item and the one-seat-per-student marker succeed or fail together, so concurrent bookings cannot double-book and one student cannot hold two seats."
+    alternative: "Read the seat, then write it (a race), or row locks in Postgres."
+  - decision: "Exclusion constraints in Postgres for rooms and teachers"
+    why: "The database itself rejects overlapping classes, so the invariant holds no matter which code path writes."
+    alternative: "Overlap checks in application code."
+  - decision: "Events through SNS and SQS with a dead-letter queue"
+    why: "Email failures cannot slow or break a booking, retries are automatic, and the sender needs no database access."
+    alternative: "Sending email inline inside the booking Lambda."
+  - decision: "Least-privilege database roles with column-level grants"
+    why: "Read-only endpoints run as a restricted role and write endpoints as a separate one, so a bug in a list handler cannot modify data."
+    alternative: "One shared database user for every function."
+  - decision: "Soft-delete through a status column"
+    why: "Suspended or removed users and cancelled classes keep their history, and the overlap constraints ignore cancelled classes so rooms are freed."
+    alternative: "Hard deletes."
+  - decision: "scrypt password hashing with a dummy hash on unknown emails"
+    why: "Native node:crypto means no extra dependency, and the dummy comparison keeps login timing the same whether or not the email exists."
+    alternative: "A managed identity service such as Cognito, which is on the roadmap."
+challenges:
+  - title: "Functions that hung instead of failing"
+    story: "A Lambda in the VPC that used DynamoDB ran until its timeout with no error because there was no route to the service. The fix was a DynamoDB gateway endpoint, and I set short client timeouts so a missing route now fails in seconds. A function that needs only SQS and SES, sendEmails, stays outside the VPC so it needs no endpoints at all."
+  - title: "API Gateway errors that all looked the same"
+    story: "Missing Authentication Token, a wrapped statusCode body and 502 Malformed Lambda proxy response all traced back to routes not deployed to the stage or proxy integration being off. I wrote each symptom and cause into a troubleshooting table so the next failure takes minutes."
+  - title: "Bookings that looked stolen by someone else"
+    story: "After booking, the seat reload saw the pup's own just-booked seats as taken by another user and showed an error. The fix was to clear the local selection before reloading availability."
+  - title: "My bookings returned seats with no labels"
+    story: "The student index did not project row and column, so the dashboard rendered undefined seats. I recreated the index with those attributes included."
+  - title: "Emails sat in the queue and never sent"
+    story: "Messages piled up because the sendEmails function or its SQS trigger did not exist yet, and later because SES was still in sandbox mode and the recipient was not verified. Both are now in the build checklist and the workbook has a runbook for redriving the dead-letter queue."
+metrics: []
+readiness:
+  tests: "TODO: no automated tests are in the repository. Handlers were exercised against fake database, DynamoDB, SNS and SES clients during development, but that harness was not kept."
+  cicd: "TODO: no CI and no infrastructure as code yet. The backend was built by hand in the AWS console, with a rebuild checklist in the workbook. A SAM or CDK template is the next step."
+  observability: "CloudWatch logs per function, and a dead-letter queue for failed emails. Unexpected errors return a generic 500 and are logged only server-side."
+  security: "JWT with a one-hour lifetime and role checks on every protected handler, ownership checks for teachers, parameterized SQL only, and least-privilege roles. Known gaps I track: database TLS does not verify the certificate, secrets live in environment variables rather than Secrets Manager, and the API needs CORS headers on real responses."
+  cost: "Pay-per-use serverless services plus one RDS instance. TODO: measured monthly cost."
+next:
+  - "Describe the whole backend as SAM or CDK so it deploys and tears down in one command."
+  - "Add automated tests and a CI pipeline, then verify the RDS certificate and move secrets to Secrets Manager."
+  - "Add a scheduling API, enrollments and a waitlist; replace hand-built auth with Cognito."
+  - "Request SES production access, add a verified domain with DKIM, and handle bounces."
+---
+
+{/* Source: project README, CLAUDE.md and WORKBOOK. */}
+
+A dog training academy needs more than a list of classes. Pups, or their owners, should choose a real seat on a seat map, trainers should publish and cancel their own classes, and an admin, the Head Dog, should approve new accounts and manage everything else. The hard part is correctness under concurrency: two people tapping the same seat at the same moment must produce exactly one booking and one clear error, and a cancelled class must free its room and notify exactly the right people.
+
+I used the project to practise a real serverless backend end to end: one Lambda per endpoint, Postgres for relational truth, DynamoDB for the contested resource, and an event pipeline so slow side effects like email never sit in the request path.

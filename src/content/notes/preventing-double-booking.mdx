@@ -1,0 +1,35 @@
+---
+title: "Preventing double-booking with a DynamoDB conditional transaction"
+slug: "preventing-double-booking"
+description: "How one transactional write makes it impossible to book the same seat twice, and to hold two seats in one class."
+date: 2026-10-09
+tags: ["AWS", "Distributed Systems"]
+project: "kenzo-pawsitive-academy"
+draft: true
+---
+
+{/* DRAFT example. Based on the Kenzo Pawsitive Academy backend. Edit freely before publishing. */}
+
+Two people tap seat B3 at the same moment. Exactly one should win, and the other should get a clear message, not a silent double booking.
+
+## The tempting approach
+
+Read the seat, see that it is free, write it. Between the read and the write, someone else can do the same. That is a race, and it only shows up under load.
+
+## What I did instead
+
+The seat lives in DynamoDB, and booking is one `TransactWriteCommand` with two puts:
+
+1. the seat item, keyed by class and seat, with `attribute_not_exists(sk)`
+2. a marker item for the student in that class, with the same condition
+
+If either condition fails, neither write happens. A taken seat fails the first condition and the user sees "That seat was just taken". A student who already has a seat fails the second and sees "already booked".
+
+## Where Postgres fits
+
+Postgres still answers the relational questions in one query: does the class exist, is it scheduled, has it started, is the student account active. DynamoDB owns only the contested resource, the seat.
+
+## What I'd check next
+
+- TODO: a concurrency test that fires many simultaneous bookings at one seat and asserts exactly one success.
+- Whether the one-seat-per-student rule should stay a marker item or move into the key design.

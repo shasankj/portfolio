@@ -1,0 +1,22 @@
+---
+// Diagram conventions (see CLAUDE.md): src/diagrams/<name>.svg, elements carry data-step="N".
+// A node and the edges leading INTO it share its step number.
+import type { CaseStudy } from '../lib/content';
+interface Props { entry: CaseStudy }
+const { entry } = Astro.props;
+const { diagram, diagramAlt, steps, title } = entry.data;
+const files = import.meta.glob('../diagrams/*.svg', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
+const svg = diagram ? files[`../diagrams/${diagram}.svg`] : undefined;
+---
+{svg ? (
+  <div class="arch" data-arch>
+    <div class="diagram-wrap">
+      <div role="img" aria-label={diagramAlt ?? `Architecture diagram of ${title}`} set:html={svg} />
+    </div>
+    <ol class="steps" data-steps>
+      {steps.map((s, i) => <li data-step-index={i + 1}><h3>{s.title}</h3><p>{s.text}</p></li>)}
+    </ol>
+  </div>
+) : (
+  <p class="todo"><b>TODO:</b> add a diagram at <code>src/diagrams/{diagram ?? '&lt;name&gt;'}.svg</code>.</p>
+)}

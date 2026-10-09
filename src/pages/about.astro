@@ -1,0 +1,41 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { site } from '../data/site';
+---
+<BaseLayout title="About" description="Software Development Lead in New Jersey. How I work: design reviews, mentoring, and owning things end to end.">
+  <section class="section">
+    <div class="wrap">
+      <p class="eyebrow">About</p>
+      <h1 style="margin:.5rem 0 2.5rem;max-width:16ch">Hi, I'm Shasank.</h1>
+      <div class="two-col">
+        <div class="prose">
+          <p>I'm a Software Development Lead at Verizon with more than seven years of experience designing and running distributed systems, event-driven services and high-throughput data platforms. I like owning a system from the API gateway and the message bus to the screen the user touches.</p>
+          <p>Lately my focus is agentic AI: supervisor agents, sub-agents that talk over open protocols, and retrieval systems whose answers have to be verifiable. I'm looking for senior and lead roles in AI engineering, AI delivery and automation, and distributed systems.</p>
+          <p>I live in New Jersey.</p>
+        </div>
+        <div>
+          <h2 style="font-size:1.3rem;margin-bottom:1rem">How I work</h2>
+          <ul class="prose">
+            <li><b>Design reviews first.</b> I write down the options and trade-offs before building, and I run the review calls.</li>
+            <li><b>Measure, then claim.</b> Every improvement gets a before-and-after number; I'd rather say "it didn't help" than guess.</li>
+            <li><b>Mentoring.</b> I help engineers set coding and design standards and grow into owning their areas.</li>
+            <li><b>End to end ownership.</b> From stakeholder conversations to CI/CD, I stay with a module until it is boring in production.</li>
+          </ul>
+          <h2 style="font-size:1.3rem;margin:2rem 0 1rem">Education</h2>
+          <ul class="prose">
+            <li>M.S. Computer Science, New Jersey Institute of Technology (2019)</li>
+            <li>B.Tech Electronics and Communication Engineering, JNTU Hyderabad (2017)</li>
+          </ul>
+        </div>
+      </div>
+      <hr class="rule" style="margin-block:3rem" />
+      <h2 style="font-size:1.3rem;margin-bottom:1rem">Get in touch</h2>
+      <div style="display:flex;flex-wrap:wrap;gap:.75rem">
+        <a class="btn primary" href={`mailto:${site.email}`}>{site.email}</a>
+        <a class="btn" href={site.linkedin} rel="me noopener">LinkedIn</a>
+        <a class="btn" href={site.github} rel="me noopener">GitHub</a>
+        <a class="btn" href={site.resume} target="_blank" rel="noopener">Résumé (PDF)</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

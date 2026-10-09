@@ -1,0 +1,20 @@
+---
+import { site } from '../data/site';
+---
+<footer class="site-footer">
+  <div class="wrap">
+    <div>
+      <p class="mono" style="color:var(--ink);margin:0 0 .25rem;font-weight:600">{site.name}</p>
+      <p style="margin:0">Software Development Lead · {site.location}</p>
+    </div>
+    <ul aria-label="Contact">
+      <li><a href={`mailto:${site.email}`}>Email</a></li>
+      <li><a href={site.github} rel="me noopener">GitHub</a></li>
+      <li><a href={site.linkedin} rel="me noopener">LinkedIn</a></li>
+      <li><a href={site.resume} target="_blank" rel="noopener">Résumé (PDF)</a></li>
+    </ul>
+    <p style="margin:0;width:100%">
+      <a href="/how-this-site-was-built/">How this site was built</a> · © {new Date().getFullYear()} {site.name}
+    </p>
+  </div>
+</footer>

@@ -1,0 +1,5 @@
+---
+interface Props { items: string[]; accent?: boolean }
+const { items, accent = false } = Astro.props;
+---
+<ul class="badges">{items.map((i) => <li class:list={['badge', { accent }]}>{i}</li>)}</ul>

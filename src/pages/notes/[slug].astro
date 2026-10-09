@@ -1,0 +1,22 @@
+---
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getNotes } from '../../lib/content';
+export async function getStaticPaths() {
+  return (await getNotes()).map((entry) => ({ params: { slug: entry.data.slug }, props: { entry } }));
+}
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const fmt = new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
+---
+<BaseLayout title={entry.data.title} description={entry.data.description} type="article">
+  <article class="section">
+    <div class="wrap">
+      <a class="eyebrow" href="/notes/" style="text-decoration:none">← Notes</a>
+      {entry.data.draft && <p class="banner" style="margin-top:1rem">Draft: not included in production builds.</p>}
+      <h1 style="margin:.75rem 0 .75rem;max-width:22ch">{entry.data.title}</h1>
+      <p class="mono" style="font-size:.8rem;color:var(--muted);margin-bottom:2.5rem"><time datetime={entry.data.date.toISOString()}>{fmt.format(entry.data.date)}</time></p>
+      <div class="note-body prose"><Content /></div>
+    </div>
+  </article>
+</BaseLayout>

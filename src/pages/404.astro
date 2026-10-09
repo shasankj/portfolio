@@ -1,0 +1,33 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout title="Page not found" noindex>
+  <section class="section">
+    <div class="wrap">
+      <p class="eyebrow">Error 404</p>
+      <h1 style="margin:.5rem 0 1.5rem;max-width:14ch">Message dropped.</h1>
+      <div class="lost" role="img" aria-label="A packet travels along a rail, reaches a gap and falls into the dead-letter queue.">
+        <div class="rail"></div><div class="gap"></div><div class="pkt"></div>
+        <span class="dlq mono">DLQ</span>
+      </div>
+      <p class="measure" style="color:var(--muted);margin-top:1.5rem">That page isn't here, so the message went to the dead-letter queue.</p>
+      <p style="margin-top:1.5rem"><a class="btn primary" href="/">Back home</a> <a class="btn" href="/projects/">See projects</a></p>
+    </div>
+  </section>
+</BaseLayout>
+<style>
+  .lost { position: relative; height: 5rem; max-width: 36rem; }
+  .rail { position: absolute; left: 0; right: 0; top: 1.4rem; height: 2px; background: var(--line); }
+  .gap { position: absolute; left: 62%; width: 14%; top: 1.15rem; height: 1rem; background: var(--bg); }
+  .pkt { position: absolute; left: 0; top: 1.15rem; width: 0.55rem; height: 0.55rem; background: var(--accent); animation: lost 5s var(--ease-in-out) infinite; }
+  .dlq { position: absolute; left: 62%; top: 3.4rem; font-size: 0.7rem; color: var(--muted); border: 1px dashed var(--muted); padding: 0.1rem 0.4rem; }
+  @keyframes lost {
+    0%   { transform: translate(0, 0); }
+    55%  { transform: translate(calc(min(36rem, 100vw - 2rem) * 0.6), 0); }
+    62%  { transform: translate(calc(min(36rem, 100vw - 2rem) * 0.6), 0); }
+    70%  { transform: translate(calc(min(36rem, 100vw - 2rem) * 0.66), 2.2rem); }
+    80%  { transform: translate(calc(min(36rem, 100vw - 2rem) * 0.63), 2.2rem); opacity: 1; }
+    100% { transform: translate(calc(min(36rem, 100vw - 2rem) * 0.63), 2.2rem); opacity: 0.2; }
+  }
+  @media (prefers-reduced-motion: reduce) { .pkt { animation: none; transform: translate(calc(min(36rem, 100vw - 2rem) * 0.63), 2.2rem); } }
+</style>

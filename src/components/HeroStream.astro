@@ -1,0 +1,16 @@
+---
+// Static rails (CSS) are always present. The canvas of moving packets loads lazily, after idle,
+// and is skipped on low-power devices. With reduced motion it draws a single still frame.
+---
+<div class="hero-rails" aria-hidden="true"></div>
+<canvas aria-hidden="true" data-hero-stream></canvas>
+<script>
+  const cv = document.querySelector<HTMLCanvasElement>('[data-hero-stream]');
+  if (cv) {
+    const run = async () => {
+      const m = await import('../lib/hero-stream');
+      if (!m.lowPower()) m.mountStream(cv);
+    };
+    'requestIdleCallback' in window ? requestIdleCallback(run, { timeout: 1500 }) : setTimeout(run, 400);
+  }
+</script>

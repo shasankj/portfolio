@@ -1,0 +1,16 @@
+---
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import CaseStudy from '../../components/CaseStudy.astro';
+import { getProjects } from '../../lib/content';
+
+export async function getStaticPaths() {
+  const all = await getProjects();
+  return all.map((entry, i) => ({ params: { slug: entry.data.slug }, props: { entry, prev: all[i - 1], next: all[i + 1] } }));
+}
+const { entry, prev, next } = Astro.props;
+const { Content } = await render(entry);
+---
+<BaseLayout title={entry.data.title} description={entry.data.summary} type="article">
+  <CaseStudy entry={entry} base="/projects" prev={prev} next={next}><Content /></CaseStudy>
+</BaseLayout>

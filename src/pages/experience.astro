@@ -1,0 +1,34 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Badges from '../components/Badges.astro';
+import { experience } from '../data/experience';
+import { getWork } from '../lib/content';
+const work = await getWork();
+---
+<BaseLayout title="Experience" description="Verizon, Caterpillar and Centinal Spark: distributed systems, full-stack delivery and agentic AI.">
+  <section class="section">
+    <div class="wrap">
+      <p class="eyebrow">Experience</p>
+      <h1 style="margin:.5rem 0 3rem">Seven years, three roles</h1>
+      <div class="timeline" data-timeline>
+        {experience.map((r) => (
+          <article class="role">
+            <h3>{r.title}, {r.company}</h3>
+            <span class="period">{r.period}</span>
+            <p class="measure">{r.summary}</p>
+            <ul class="b">{r.bullets.map((b) => <li>{b}</li>)}</ul>
+            <Badges items={r.tech} />
+          </article>
+        ))}
+      </div>
+      {work.length > 0 && (
+        <div style="margin-top:4rem">
+          <h2 style="margin-bottom:1.5rem">Work case studies</h2>
+          <ul class="list">
+            {work.map((w) => <li><a href={`/work/${w.data.slug}/`}><span class="mono" style="font-size:.78rem;color:var(--muted)">Verizon</span><span><b class="mono">{w.data.title}</b><br /><span style="color:var(--muted)">{w.data.summary}</span></span></a></li>)}
+          </ul>
+        </div>
+      )}
+    </div>
+  </section>
+</BaseLayout>

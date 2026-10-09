@@ -1,0 +1,101 @@
+---
+title: "Care Bot"
+slug: "care-bot"
+summary: "An insurance and pharmacy assistant that answers only from cited sources, says I don't know without evidence, and never gives medical advice."
+tldr: "Care Bot answers insurance and drug questions from three sources: Medicare PDFs and FDA labels through hybrid RAG on Postgres with pgvector, and a patient's exact records through an MCP server. A LangGraph agent routes each question, and code-enforced guards around the model reject any answer that is uncited or contains a number that is not in the sources."
+role: "Designer and developer"
+status: "live"
+date: 2026-10-07
+order: 1
+featured: true
+tags: ["AI/Agents", "RAG", "AWS", "Full-stack"]
+stack: ["Claude Haiku 4.5", "LangGraph", "MCP", "FastAPI", "PostgreSQL + pgvector", "fastembed", "React 19", "TypeScript", "Tailwind CSS"]
+cloud: ["AWS EC2", "Docker", "Caddy"]
+accentColor: "#0f766e"
+accentColorDark: "#5eead4"
+links:
+  live: "https://3-135-57-21.sslip.io/"
+  repo: "https://github.com/shasankj/healthcare-chatbot"
+diagram: "care-bot"
+diagramAlt: "Pipeline: browser, input guard, gate, parallel hybrid RAG and MCP tools, answer, output guard, verified answer back to the browser."
+steps:
+  - title: "The question arrives"
+    text: "The browser POSTs to /chat and reads a stream of progress events. Role and patient scope come from a signed, HttpOnly session cookie, never from the request body."
+  - title: "Input guard, in code"
+    text: "Sanitizes the text and refuses emergencies, injection attempts and medical-advice requests before any model runs. A refusal takes about 0.1 s and costs nothing."
+  - title: "Gate, stricter-only"
+    text: "A small Claude Haiku call classifies intent and what data is needed. It can only tighten a decision, so a model can add a refusal but never grant access that code denied."
+  - title: "Retrieval and tools, in parallel"
+    text: "Hybrid search (pgvector plus full-text, fused with reciprocal rank fusion, with metadata filters) runs beside an MCP server that exposes four fixed read-only tools over patient records."
+  - title: "Answer from evidence only"
+    text: "Retrieved text is fenced as untrusted data. If nothing relevant survives, the bot says I don't know without calling the answer model. Otherwise Haiku drafts a cited answer."
+  - title: "Output guard, fail closed"
+    text: "A verifier in plain code rejects any draft that has no citation, cites a source that does not exist, or states a dollar amount or percentage that is not in the sources."
+  - title: "Verified answer last"
+    text: "Progress streams to the UI throughout, but unverified text never does. The verified answer arrives last, with citation chips that link to the exact PDF page."
+decisions:
+  - decision: "Safety enforced in code around the model, not only in the prompt"
+    why: "Prompts are requests; guards are not. Input guard, fencing, a strict prompt and an output verifier give four independent layers."
+    alternative: "A single strong system prompt and trusting the model to follow it."
+  - decision: "PostgreSQL with pgvector for vectors and relational data"
+    why: "One transactional store gives SQL joins, vectors, full-text search, audit and backups, with one system to secure."
+    alternative: "A dedicated vector database (Pinecone, Qdrant, Weaviate); not built for billions of vectors, but unnecessary at this scale."
+  - decision: "Direct SQL for retrieval (distance, tsvector, RRF, filters)"
+    why: "The LangChain wrapper could not express hybrid fusion, joins to a sources table, iterative scan or the relevance gate."
+    alternative: "The LangChain PGVector wrapper from the original spec."
+  - decision: "Four fixed MCP tools instead of a free-form SQL tool"
+    why: "The model never writes SQL and never even sees a member_id parameter, so the attack surface is tiny and identity comes from the session."
+    alternative: "Text-to-SQL, which is more flexible but lets the model choose whose data to read."
+  - decision: "Stream progress, not tokens"
+    why: "Unverified text must never reach the user, so the UI shows a live pipeline timeline and the verified answer arrives last."
+    alternative: "Token streaming with a typewriter effect, plus post-hoc verification."
+  - decision: "Local embeddings (bge-base-en-v1.5, 768 dimensions)"
+    why: "No per-call cost, health text stays on the server, and retrieval quality is strong."
+    alternative: "A hosted embeddings API, or the smaller 384-dimension model."
+challenges:
+  - title: "Hybrid search first made retrieval worse"
+    story: "OR-ing keywords dropped hit@1 from 16/20 (vector only) to 13/20, because common words dominated without IDF weighting. Switching to AND semantics with a vector fallback fixed it. Every improvement now needs a before-and-after number."
+  - title: "One of my own guard rules blocked 30 real documents"
+    story: "A role-play pattern for you ... doctor flagged 30 genuine chunks and would have refused a harmless question about whether a doctor accepts a plan. I narrowed it to actual assignments and re-measured: 0 of 898 false positives."
+  - title: "Correct answers looked like hallucinations"
+    story: "A tool returned a copay as 5.0 while the output guard looks for $5.00, so correct answers were rejected. The fix was to return formatted money from the tools, plus a test across that seam. Test the boundaries between components, not only the components."
+  - title: "The distance threshold is not a security control"
+    story: "Ten of eleven evasive attacks passed the relevance gate. I stopped treating it as safety, kept it as a relevance check only, and relied on the other layers. Regex recall on fresh attacks is 6 of 8, so I describe it as a speed bump."
+  - title: "A model skipped a required field and broke off-topic questions"
+    story: "A strict gate schema made the model's omitted fields throw validation errors in front of users, dropping live eval from 33 to 30. Requiring only intent, with safe defaults, brought it back to 33/33. Schema tolerance is a correctness feature."
+metrics:
+  - label: "Live end-to-end evaluation cases behaving as expected"
+    value: "37 of 37"
+    note: "real Claude Haiku, database and MCP subprocess"
+  - label: "Automated tests"
+    value: "221 + 15"
+    note: "backend pytest, frontend Vitest"
+  - label: "FDA label retrieval, hit@5"
+    value: "19 of 19"
+    note: "19-question set"
+  - label: "Right drug returned for name-less queries"
+    value: "6% to 100%"
+    note: "after adding the drug metadata filter"
+  - label: "Refusals"
+    value: "about 0.1 s"
+    note: "no model call"
+readiness:
+  tests: "221 backend tests (guards, every graph branch with fake LLMs, API, MCP over a real stdio subprocess) and 15 frontend tests, plus scripted retrieval and live end-to-end evaluations kept in the repo."
+  cicd: "Multi-stage Docker build and a compose file for a single EC2 host behind Caddy with automatic HTTPS. TODO: no CI pipeline runs the tests on push yet."
+  observability: "Append-only audit log of every patient-data access (question hash and length, never the text), a health endpoint, and error shaping with secrets redacted. Distributed tracing and per-stage metrics are not built yet."
+  security: "HttpOnly signed session cookie, Origin check for CSRF, rate limits, security headers, a read-only database role for the running app, fenced untrusted text, and non-root container. Sign-in is simulated and patients are synthetic, so this is a demo, not production authentication."
+  cost: "Three small Haiku calls per answered turn, local embeddings, and a hard cap on output tokens. TODO: measured cost per conversation."
+next:
+  - "Heading-aware chunking and a cross-encoder reranker, measured against the existing retrieval sets."
+  - "OpenTelemetry traces per graph node with p50 and p95 latency by stage."
+  - "A held-out attack set and an ML injection classifier as another stricter-only layer."
+  - "Real authentication (OIDC) and a Postgres checkpointer so memory survives restarts."
+---
+
+{/* Source: project README and WORKBOOK. Numbers are measured on this codebase. */}
+
+People ask insurance and pharmacy questions where a confident wrong answer does real harm: what a plan covers, what a drug's label says, what their own copay is. A plain chatbot improvises. I wanted an assistant that behaves like a careful pharmacist's aide: it cites every factual sentence, admits when it has no evidence, refuses medical advice, and can never be talked into reading someone else's records.
+
+The interesting engineering is the trust boundary. The model is wrapped by layers I can test and measure, so safety does not depend on the model behaving well. Patient identity is decided by a signed cookie, retrieval is split into two enforced modes (coverage questions search only Medicare documents, drug questions search only the named drug's FDA label), and every draft must pass a verifier before the user sees it.
+
+All patients are synthetic and the sign-in is simulated. It is a portfolio project, not a medical device.

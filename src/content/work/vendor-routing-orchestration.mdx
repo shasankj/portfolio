@@ -1,0 +1,49 @@
+---
+# Review against employer confidentiality policy before publishing.
+title: "Vendor routing and task orchestration"
+slug: "vendor-routing-orchestration"
+summary: "A weighted order-routing service and an asynchronous task-orchestration platform with built-in observability, retries and automated recovery."
+tldr: "I designed a service that routes incoming 5G orders to the right vendor by weighting, priority and order type, and a task-orchestration platform that runs background workflows asynchronously with monitoring, retries and automated failure recovery."
+role: "Software Development Lead"
+status: "live"
+date: 2019-11-01
+order: 11
+featured: false
+tags: ["Distributed Systems", "Full-stack"]
+stack: ["Node.js", "Express", "GraphQL", "TypeScript", "Oracle SQL", "Prometheus", "Grafana", "OpenTelemetry"]
+cloud: ["Kubernetes", "Podman"]
+accentColor: "#7c3aed"
+accentColorDark: "#c4b5fd"
+links: {}
+diagram: "vendor-routing-orchestration"
+diagramAlt: "Generic flow: an order enters a routing service, which scores vendors and dispatches work to an orchestrator that runs tasks with retries and monitoring."
+steps:
+  - title: "An order arrives"
+    text: "An incoming order carries a type and priority."
+  - title: "Score the vendors"
+    text: "The routing service evaluates candidates by weighting, priority and order type."
+  - title: "Dispatch to the orchestrator"
+    text: "Work is handed to a background orchestrator rather than run inside the request."
+  - title: "Run with retries and recovery"
+    text: "Tasks run asynchronously with retry handling and automated failure recovery."
+  - title: "Observe everything"
+    text: "Metrics and traces flow to Prometheus, Grafana and OpenTelemetry so operators can see order status end to end."
+decisions:
+  - decision: "Weighting-based vendor routing"
+    why: "Routing rules stay data, so changing priorities does not need a deploy."
+    alternative: "Hard-coded routing branches."
+  - decision: "Asynchronous orchestration with first-class observability"
+    why: "Long-running work should not hold a request open, and failures must be visible and recoverable."
+    alternative: "Cron jobs with ad hoc logging."
+challenges:
+  - title: "Reliable calls between services"
+    story: "TODO: add a real debugging story once the confidentiality review is done."
+metrics: []
+next:
+  - "TODO: add what comes next once the confidentiality review is done."
+draft: true
+---
+
+{/* Review against employer confidentiality policy before publishing. */}
+
+Orders had to reach the right vendor without a person deciding each time, and the background work around them had to survive failures without someone watching a console. This page describes the architecture generically, with no internal names, data or code.

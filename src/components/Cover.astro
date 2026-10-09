@@ -1,0 +1,15 @@
+---
+// Generated cover: the "pipeline" motif (rails + packets), laid out deterministically from the slug.
+interface Props { seed: string; label?: string }
+const { seed, label } = Astro.props;
+let h = 2166136261;
+for (const c of seed) h = Math.imul(h ^ c.charCodeAt(0), 16777619);
+const rnd = () => ((h = Math.imul(h ^ (h >>> 15), 2246822507) >>> 0), (h % 1000) / 1000);
+const rails = 5;
+const packets = Array.from({ length: 9 }, () => ({ r: Math.floor(rnd() * rails), x: 20 + Math.floor(rnd() * 56) * 10, big: rnd() > 0.6 }));
+---
+<svg viewBox="0 0 640 320" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+  {Array.from({ length: rails }, (_, i) => <line x1="0" x2="640" y1={50 + i * 55} y2={50 + i * 55} stroke="var(--line)" stroke-width="1" />)}
+  {packets.map((p) => <rect x={p.x} y={50 + p.r * 55 - (p.big ? 9 : 5)} width={p.big ? 18 : 10} height={p.big ? 18 : 10} fill={p.big ? 'var(--project-accent)' : 'var(--ink)'} opacity={p.big ? 1 : 0.55} />)}
+  {label && <text x="24" y="302" font-family="var(--font-display)" font-size="14" fill="var(--muted)" letter-spacing="1">{label}</text>}
+</svg>

@@ -1,0 +1,20 @@
+<svg class="diagram" viewBox="0 0 1110 400" xmlns="http://www.w3.org/2000/svg" focusable="false">
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1 L9 5 L0 9" fill="none" stroke="var(--muted)" stroke-width="1.6"/></marker></defs>
+  <g class="node" data-step="1"><rect x="10" y="90" width="140" height="60" rx="2"/><text x="80.0" y="116">React SPA</text><text class="sub" x="80.0" y="134">Vite, JWT</text></g>
+  <path class="edge" id="kz-e1" data-step="2" d="M150,120 L200,120" marker-end="url(#arrow)"/>
+  <g class="node" data-step="2"><rect x="200" y="90" width="140" height="60" rx="2"/><text x="270.0" y="116">API Gateway</text><text class="sub" x="270.0" y="134">REST routes</text></g>
+  <path class="edge" id="kz-e2" data-step="3" d="M340,120 L390,120" marker-end="url(#arrow)"/>
+  <g class="node accent" data-step="3"><rect x="390" y="90" width="140" height="60" rx="2"/><text x="460.0" y="116">Lambda (Node)</text><text class="sub" x="460.0" y="134">one per endpoint</text></g>
+  <path class="edge" id="kz-e3a" data-step="4" d="M530,120 C560,120 560,50 590,50" marker-end="url(#arrow)"/>
+  <path class="edge" id="kz-e3b" data-step="4" d="M530,120 C560,120 560,180 590,180" marker-end="url(#arrow)"/>
+  <g class="node" data-step="4"><rect x="590" y="20" width="140" height="60" rx="2"/><text x="660.0" y="46">RDS Postgres</text><text class="sub" x="660.0" y="64">constraints</text></g>
+  <g class="node accent" data-step="4"><rect x="590" y="150" width="140" height="60" rx="2"/><text x="660.0" y="176">DynamoDB</text><text class="sub" x="660.0" y="194">conditional lock</text></g>
+  <path class="edge" id="kz-e4" data-step="5" d="M460,150 L460,310" marker-end="url(#arrow)"/>
+  <g class="node" data-step="5"><rect x="390" y="310" width="140" height="60" rx="2"/><text x="460.0" y="336">SNS</text><text class="sub" x="460.0" y="354">events by type</text></g>
+  <path class="edge" id="kz-e5" data-step="6" d="M530,340 L590,340" marker-end="url(#arrow)"/>
+  <g class="node" data-step="6"><rect x="590" y="310" width="140" height="60" rx="2"/><text x="660.0" y="336">SQS</text><text class="sub" x="660.0" y="354">with DLQ</text></g>
+  <path class="edge" id="kz-e6" data-step="7" d="M730,340 L790,340" marker-end="url(#arrow)"/>
+  <g class="node" data-step="7"><rect x="790" y="310" width="140" height="60" rx="2"/><text x="860.0" y="336">sendEmails</text><text class="sub" x="860.0" y="354">batch retry</text></g>
+  <path class="edge" id="kz-e7" data-step="8" d="M930,340 L960,340" marker-end="url(#arrow)"/>
+  <g class="node" data-step="8"><rect x="960" y="310" width="140" height="60" rx="2"/><text x="1030.0" y="336">SES</text><text class="sub" x="1030.0" y="354">plain-text email</text></g>
+</svg>

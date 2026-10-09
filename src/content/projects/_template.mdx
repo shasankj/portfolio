@@ -1,0 +1,52 @@
+---
+# ============================================================================
+# Project case-study template. Copy with:  npm run new-project -- "Project Name"
+# Files starting with "_" are ignored by the site. Remove these comments freely.
+# NEVER invent metrics. Leave `metrics: []` and the page shows a visible TODO.
+# ============================================================================
+title: "Project Name"            # Display name
+slug: "project-name"            # URL: /projects/<slug>/  (lowercase, digits, hyphens)
+summary: "One sentence for cards and SEO (max 240 chars)."
+tldr: "Two or three sentences: what it is, the key idea, why it is interesting."
+role: "Designer and developer"  # Your real role on this project
+status: "in-progress"           # live | in-progress | archived
+date: 2026-01-01                # Used for sorting and display (YYYY-MM-DD)
+order: 100                      # Lower shows first on the index. Ties: newest first. AI projects get low numbers.
+featured: false                 # true = shown on the Home page (keep to 3-4 projects)
+tags: []                        # Any of: "AI/Agents", "RAG", "Distributed Systems", "AWS", "Azure", "Full-stack"
+stack: []                       # Languages, frameworks, models. e.g. ["FastAPI", "React"]
+cloud: []                       # Cloud services. e.g. ["Lambda", "DynamoDB"]
+accentColor: "#0f766e"          # Light theme. Needs 4.5:1 contrast on #f3f0e8 (check it!)
+accentColorDark: "#5eead4"      # Dark theme. Needs 4.5:1 on #0b1220. Optional (defaults to accentColor)
+links:
+  # live: "https://..."         # Live demo
+  # repo: "https://github.com/shasankj/..."
+  # video: "https://..."        # 2-minute walkthrough
+# cover: "/covers/project-name.png"   # Optional. If omitted, a generated pattern in the accent color is used.
+# coverAlt: "Describe the image"
+diagram: "project-name"         # Needs src/diagrams/<diagram>.svg (see CLAUDE.md "Diagram conventions")
+diagramAlt: "One sentence describing the diagram for screen readers."
+steps:                          # One entry per data-step number in the SVG, in order
+  - title: "First step"
+    text: "What happens, in one or two sentences."
+decisions:                      # decision -> why -> alternative considered
+  - decision: ""
+    why: ""
+    alternative: ""
+challenges:                     # Real debugging stories only. Source them from commits and notes.
+  - title: ""
+    story: ""
+metrics: []                     # [{ label: "...", value: "...", note: "optional" }]. Real numbers only.
+readiness:                      # Delete the block if you have nothing honest to say; write TODO: where unknown
+  tests: "TODO:"
+  cicd: "TODO:"
+  observability: "TODO:"
+  security: "TODO:"
+  cost: "TODO:"
+next: []                        # What you would do next
+draft: true                     # true = visible in `npm run dev`, excluded from production builds
+---
+
+{/* The text below is the "Problem" section. Write 1-3 short paragraphs, first person, impact first. */}
+
+What problem does this solve, for whom, and why was it hard?

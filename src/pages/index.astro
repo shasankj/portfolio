@@ -1,0 +1,77 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import HeroStream from '../components/HeroStream.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import { getProjects } from '../lib/content';
+import { site } from '../data/site';
+import { skills } from '../data/experience';
+
+const projects = await getProjects();
+const featured = projects.filter((p) => p.data.featured).slice(0, 4);
+const live = projects.filter((p) => p.data.links.live);
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: site.name,
+  jobTitle: 'Software Development Lead',
+  worksFor: { '@type': 'Organization', name: 'Verizon' },
+  url: site.url,
+  email: `mailto:${site.email}`,
+  sameAs: [site.github, site.linkedin],
+  address: { '@type': 'PostalAddress', addressRegion: 'NJ', addressCountry: 'US' },
+  alumniOf: [
+    { '@type': 'CollegeOrUniversity', name: 'New Jersey Institute of Technology' },
+    { '@type': 'CollegeOrUniversity', name: 'Jawaharlal Nehru Technological University, Hyderabad' },
+  ],
+  knowsAbout: ['Distributed systems', 'Event-driven architecture', 'Agentic AI', 'Retrieval-augmented generation', 'Kafka', 'React'],
+};
+---
+<BaseLayout jsonLd={jsonLd}>
+  <section class="hero" aria-labelledby="top">
+    <HeroStream />
+    <div class="wrap hero-inner">
+      <p class="eyebrow" style="margin-bottom:1.25rem">Lead engineer · Distributed systems and agentic AI</p>
+      <h1 id="top">Systems that route, retry, <em>recover.</em></h1>
+      <p class="lede">
+        Software Development Lead with 7+ years building event-driven platforms and agentic AI systems.
+        I own them from the API gateway to the pixel, and I measure before I claim.
+      </p>
+      <div class="actions">
+        <a class="btn primary" href={site.resume} target="_blank" rel="noopener">Résumé (PDF)</a>
+        <a class="btn" href={site.github} rel="me noopener">GitHub</a>
+        <a class="btn" href={site.linkedin} rel="me noopener">LinkedIn</a>
+        <a class="btn" href={`mailto:${site.email}`}>Email</a>
+      </div>
+      {live.length > 0 && (
+        <div class="live" aria-label="Live demos">
+          {live.map((p) => (
+            <a class="live-card" href={p.data.links.live} target="_blank" rel="noopener" data-pa style={`--pa-light:${p.data.accentColor};--pa-dark:${p.data.accentColorDark ?? p.data.accentColor}`}>
+              <div><b><span class="dot-live" aria-hidden="true"></span>{p.data.title}</b><span>Live demo · {p.data.tags[0]}</span></div>
+              <span aria-hidden="true">↗</span>
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="featured">
+    <div class="wrap">
+      <div style="display:flex;justify-content:space-between;align-items:end;gap:1rem;flex-wrap:wrap;margin-bottom:2rem">
+        <h2 id="featured">Featured projects</h2>
+        <a href="/projects/" class="mono" style="font-size:.85rem">All projects →</a>
+      </div>
+      <div class="grid-cards">{featured.map((p) => <ProjectCard entry={p} />)}</div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:0" aria-labelledby="work">
+    <div class="wrap">
+      <h2 id="work" style="margin-bottom:2rem">What I work on</h2>
+      <div class="skills">
+        {skills.map((s) => <div><h3>{s.area}</h3><p>{s.items.join(' · ')}</p></div>)}
+      </div>
+      <p style="margin-top:2rem"><a href="/experience/">See my experience →</a></p>
+    </div>
+  </section>
+</BaseLayout>

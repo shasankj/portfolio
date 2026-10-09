@@ -1,0 +1,54 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProjectCard from '../../components/ProjectCard.astro';
+import { getProjects } from '../../lib/content';
+import { tags } from '../../data/site';
+const projects = await getProjects();
+const used = tags.filter((t) => projects.some((p) => p.data.tags.includes(t)));
+---
+<BaseLayout title="Projects" description="Case studies: agentic AI with RAG and MCP, and a serverless AWS booking system.">
+  <section class="section">
+    <div class="wrap">
+      <p class="eyebrow">Projects</p>
+      <h1 style="margin:.5rem 0 1rem">Things I've built and shipped</h1>
+      <p class="measure" style="color:var(--muted)">Each one is a case study: the problem, the architecture, the trade-offs, and what broke along the way.</p>
+
+      <div class="filters" role="group" aria-label="Filter projects by tag" data-filters hidden>
+        <button class="chip" type="button" aria-pressed="true" data-tag="all">All</button>
+        {used.map((t) => <button class="chip" type="button" aria-pressed="false" data-tag={t}>{t}</button>)}
+      </div>
+      <p class="mono" style="font-size:.8rem;color:var(--muted)" role="status" aria-live="polite" data-count></p>
+
+      <div class="grid-cards" data-grid style="margin-top:1rem">
+        {projects.map((p) => <ProjectCard entry={p} />)}
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+<script>
+  // Progressive enhancement: without JS the filter bar stays hidden and every card is visible.
+  const bar = document.querySelector<HTMLElement>('[data-filters]');
+  const cards = [...document.querySelectorAll<HTMLElement>('[data-grid] .card')];
+  const status = document.querySelector<HTMLElement>('[data-count]');
+  if (bar) {
+    bar.hidden = false;
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const apply = (tag: string) => {
+      let shown = 0;
+      for (const c of cards) {
+        const match = tag === 'all' || (c.dataset.tags ?? '').split('|').includes(tag);
+        if (match) shown++;
+        if (reduce) { c.hidden = !match; continue; }
+        if (match) { c.hidden = false; requestAnimationFrame(() => c.classList.remove('out')); }
+        else { c.classList.add('out'); setTimeout(() => { if (c.classList.contains('out')) c.hidden = true; }, 250); }
+      }
+      if (status) status.textContent = `${shown} of ${cards.length} projects`;
+    };
+    bar.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLButtonElement>('button[data-tag]');
+      if (!b) return;
+      bar.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      apply(b.dataset.tag!);
+    });
+  }
+</script>

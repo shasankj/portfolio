@@ -1,0 +1,58 @@
+---
+# Review against employer confidentiality policy before publishing.
+title: "Event correlation and root-cause ticketing"
+slug: "event-correlation"
+summary: "A streaming system that groups network events, identifies the root-cause event per site and opens one consolidated ticket per event family."
+tldr: "I owned a core module of a large network-operations platform end to end. It ingests a high volume of network events, groups them by category, picks the root-cause event for each site and auto-creates a single ticket per event family, which cut duplicate-ticket noise for operations teams."
+role: "Software Development Lead"
+status: "live"
+date: 2019-11-01
+order: 10
+featured: false
+tags: ["Distributed Systems", "AI/Agents"]
+stack: ["Apache Flink", "Kafka", "Spring Boot", "Caffeine cache", "LangGraph", "Google A2A"]
+cloud: ["Kubernetes", "OpenShift"]
+accentColor: "#1d4ed8"
+accentColorDark: "#93c5fd"
+links: {}
+diagram: "event-correlation"
+diagramAlt: "Generic event-correlation pipeline: events flow into a message bus, a stream processor groups them, a root-cause step selects one event per site, and one consolidated ticket is created."
+steps:
+  - title: "Events arrive"
+    text: "Network events from many sources land on a message bus at high volume."
+  - title: "Ingestion layer"
+    text: "A stream-processing job reads the bus and normalizes events. I later isolated this ingestion layer from downstream work so a slow consumer cannot back up the stream."
+  - title: "Group by category"
+    text: "Related events are grouped into families using their category and location."
+  - title: "Pick the root cause"
+    text: "For each site, one event in the family is identified as the root cause and the rest are treated as symptoms."
+  - title: "One ticket per family"
+    text: "A single consolidated ticket is created for the event family, replacing a flood of duplicates."
+decisions:
+  - decision: "Isolate ingestion from downstream processing"
+    why: "A slow or failing downstream step should not stall or lose events at the front door."
+    alternative: "One end-to-end streaming job."
+  - decision: "In-memory caching of hot reference data"
+    why: "Caching removed repeated lookups and made the module about 3x faster."
+    alternative: "A shared distributed cache."
+  - decision: "Async, callback-based integration with slow external systems"
+    why: "Core workflows keep moving instead of blocking on a slow dependency."
+    alternative: "Synchronous calls with long timeouts."
+challenges:
+  - title: "Sustaining throughput under load"
+    story: "I ran load tests, found the hot API and SQL query paths, and optimized them, cutting API response time and query execution time by roughly 50%."
+metrics:
+  - label: "Module performance after caching"
+    value: "about 3x"
+  - label: "API response and SQL query time after tuning"
+    value: "about 50% lower"
+next:
+  - "TODO: add what comes next once the confidentiality review is done."
+draft: true
+---
+
+{/* Review against employer confidentiality policy before publishing. */}
+
+Operations teams were drowning in tickets: one underlying fault at a cell site produced many related network events, and each one opened its own ticket. People spent time working out which ticket mattered and which were echoes of it.
+
+The goal was to ingest the events as they happen, decide which one is the cause, and give the team one ticket for the whole story. This page describes the approach generically. It contains no internal system names beyond my public resume, no data and no code.

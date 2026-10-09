@@ -1,0 +1,110 @@
+---
+import type { CaseStudy } from '../lib/content';
+import Badges from './Badges.astro';
+import ArchitectureDiagram from './ArchitectureDiagram.astro';
+interface Props { entry: CaseStudy; base: '/projects' | '/work'; prev?: CaseStudy; next?: CaseStudy; banner?: string }
+const { entry, base, prev, next, banner } = Astro.props;
+const d = entry.data;
+const fmt = new Intl.DateTimeFormat('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
+let n = 0;
+const num = () => String(++n).padStart(2, '0');
+const links = [
+  d.links.live && { href: d.links.live, label: 'Live demo', primary: true },
+  d.links.repo && { href: d.links.repo, label: 'Repository' },
+  d.links.video && { href: d.links.video, label: '2-min video' },
+].filter(Boolean) as { href: string; label: string; primary?: boolean }[];
+---
+<article data-pa style={`--pa-light:${d.accentColor};--pa-dark:${d.accentColorDark ?? d.accentColor}`}>
+  <header class="cs-hero">
+    <div class="wrap">
+      {banner && <p class="banner">{banner}</p>}
+      <a class="eyebrow" href={base === '/projects' ? '/projects/' : '/experience/'} style="text-decoration:none">← {base === '/projects' ? 'All projects' : 'Experience'}</a>
+      <h1>{d.title}</h1>
+      <div class="cs-meta">
+        <span>{d.role}</span>{base === '/projects' && <span>{fmt.format(d.date)}</span>}<span style="text-transform:capitalize">{d.status.replace('-', ' ')}</span>
+      </div>
+      <p class="tldr">{d.tldr}</p>
+      <Badges items={[...d.stack, ...d.cloud]} accent />
+      {links.length > 0 ? (
+        <div class="links">
+          {links.map((l) => <a class:list={['btn', { primary: l.primary }]} href={l.href} target="_blank" rel="noopener">{l.label} ↗</a>)}
+          {!d.links.video && base === '/projects' && <span class="todo" style="padding:.5rem .9rem;font-size:.85rem"><b>TODO:</b> 2-min video link</span>}
+        </div>
+      ) : null}
+    </div>
+  </header>
+
+  <div class="wrap">
+    <section class="cs-section" aria-labelledby="problem">
+      <h2 id="problem"><span class="num">{num()}</span>Problem</h2>
+      <div class="prose"><slot /></div>
+    </section>
+
+    <section class="cs-section" aria-labelledby="architecture">
+      <h2 id="architecture"><span class="num">{num()}</span>Architecture</h2>
+      <ArchitectureDiagram entry={entry} />
+    </section>
+
+    {d.decisions.length > 0 && (
+      <section class="cs-section" aria-labelledby="decisions">
+        <h2 id="decisions"><span class="num">{num()}</span>Key decisions and trade-offs</h2>
+        <div class="decisions">
+          {d.decisions.map((x) => (
+            <dl class="decision">
+              <div><dt>Decision</dt><dd>{x.decision}</dd></div>
+              <div><dt>Why</dt><dd>{x.why}</dd></div>
+              <div><dt>Alternative considered</dt><dd>{x.alternative}</dd></div>
+            </dl>
+          ))}
+        </div>
+      </section>
+    )}
+
+    {d.challenges.length > 0 && (
+      <section class="cs-section" aria-labelledby="challenges">
+        <h2 id="challenges"><span class="num">{num()}</span>Challenges and what broke</h2>
+        <div class="stories">
+          {d.challenges.map((c) => <div class="story"><h3>{c.title}</h3><p>{c.story}</p></div>)}
+        </div>
+      </section>
+    )}
+
+    <section class="cs-section" aria-labelledby="results">
+      <h2 id="results"><span class="num">{num()}</span>Results</h2>
+      {d.metrics.length > 0 ? (
+        <div class="metrics">
+          {d.metrics.map((m) => <div class="metric"><b data-count>{m.value}</b><span>{m.label}{m.note ? ` · ${m.note}` : ''}</span></div>)}
+        </div>
+      ) : (
+        <p class="todo"><b>TODO:</b> add real metrics (load test, usage, latency, cost). None are published yet, and none are invented.</p>
+      )}
+    </section>
+
+    {d.readiness && (
+      <section class="cs-section" aria-labelledby="readiness">
+        <h2 id="readiness"><span class="num">{num()}</span>Production readiness</h2>
+        <div class="readiness">
+          <div><h3>Tests</h3><p>{d.readiness.tests}</p></div>
+          <div><h3>CI/CD</h3><p>{d.readiness.cicd}</p></div>
+          <div><h3>Observability</h3><p>{d.readiness.observability}</p></div>
+          <div><h3>Security</h3><p>{d.readiness.security}</p></div>
+          <div><h3>Cost</h3><p>{d.readiness.cost}</p></div>
+        </div>
+      </section>
+    )}
+
+    {d.next.length > 0 && (
+      <section class="cs-section" aria-labelledby="next">
+        <h2 id="next"><span class="num">{num()}</span>What I'd do next</h2>
+        <ul class="prose">{d.next.map((x) => <li>{x}</li>)}</ul>
+      </section>
+    )}
+
+    {(prev || next) && (
+      <nav class="pn" aria-label="More case studies">
+        {prev ? <a href={`${base}/${prev.data.slug}/`}><span class="eyebrow">← Previous</span><b>{prev.data.title}</b></a> : <span></span>}
+        {next ? <a href={`${base}/${next.data.slug}/`}><span class="eyebrow">Next →</span><b>{next.data.title}</b></a> : <span></span>}
+      </nav>
+    )}
+  </div>
+</article>
