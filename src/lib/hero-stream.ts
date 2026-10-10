@@ -113,8 +113,12 @@ export function mountStream(canvas: HTMLCanvasElement): () => void {
   };
 }
 
-/** True on devices where an always-on canvas is not worth it. Falls back to the static rails. */
+/**
+ * True on devices where an always-on canvas is not worth it (data-saver on, or very little memory).
+ * Falls back to the static rails. CPU core count is deliberately NOT used: 14 small squares at 30 fps is cheap,
+ * and plenty of healthy 2-core machines and virtual machines would have been wrongly excluded.
+ */
 export function lowPower() {
   const n = navigator as Navigator & { deviceMemory?: number; connection?: { saveData?: boolean } };
-  return (n.hardwareConcurrency ?? 8) <= 2 || (n.deviceMemory ?? 8) <= 2 || !!n.connection?.saveData;
+  return (n.deviceMemory ?? 8) <= 2 || !!n.connection?.saveData;
 }

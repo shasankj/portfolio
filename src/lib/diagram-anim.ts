@@ -2,7 +2,9 @@
 //  - elements in the SVG carry data-step="N"; a node and the edges leading INTO it share a step
 //  - edges are <path class="edge">; a "packet" travels along each edge of the current step
 //  - the walkthrough <ol data-steps> has one <li> per step, in order
-// With reduced motion: no dimming, no packets; only the current step is highlighted as you read.
+// The diagram is pinned while the steps scroll. Steps can also be clicked, and "Play flow" runs them in order,
+// so you never have to scroll to see the flow.
+// With reduced motion: no dimming, no packets, no auto-centering animation; only the current step is highlighted.
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -11,14 +13,22 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 const DIM = 0.14;
 
 export function initDiagrams(reduce: boolean) {
+  const cleanups: Array<() => void> = [];
   const ctx = gsap.context(() => {
     document.querySelectorAll<HTMLElement>('[data-arch]').forEach((root) => {
       const svg = root.querySelector<SVGSVGElement>('svg');
       const items = [...root.querySelectorAll<HTMLElement>('[data-steps] > li')];
+      const bar = root.querySelector<HTMLElement>('.arch-bar');
+      const playBtn = root.querySelector<HTMLButtonElement>('[data-play]');
+      const count = root.querySelector<HTMLElement>('[data-caption-count]');
+      const caption = root.querySelector<HTMLElement>('[data-caption]');
+      const wrap = root.querySelector<HTMLElement>('.diagram-wrap');
       if (!svg || !items.length) return;
       const els = [...svg.querySelectorAll<SVGElement>('[data-step]')];
       const stepOf = (el: Element) => Number(el.getAttribute('data-step'));
       let current = 0;
+      let playing: gsap.core.Tween | null = null;
+      if (bar) bar.hidden = false;
 
       const packets = (n: number) => {
         svg.querySelectorAll<SVGPathElement>(`path.edge[data-step="${n}"]`).forEach((path) => {
@@ -36,6 +46,15 @@ export function initDiagrams(reduce: boolean) {
         });
       };
 
+      // If the diagram is wider than its box (phones), keep the current step's node centred in view.
+      const centre = (n: number) => {
+        if (!wrap || wrap.scrollWidth <= wrap.clientWidth + 2) return;
+        const target = svg.querySelector<SVGGraphicsElement>(`.node[data-step="${n}"], g[data-step="${n}"]`);
+        if (!target) return;
+        const t = target.getBoundingClientRect(), w = wrap.getBoundingClientRect();
+        wrap.scrollBy({ left: t.left + t.width / 2 - (w.left + w.width / 2), behavior: reduce ? 'auto' : 'smooth' });
+      };
+
       const show = (n: number, travel = true) => {
         current = n;
         els.forEach((el) => {
@@ -47,24 +66,69 @@ export function initDiagrams(reduce: boolean) {
           li.classList.toggle('active', i + 1 === n);
           i + 1 === n ? li.setAttribute('aria-current', 'step') : li.removeAttribute('aria-current');
         });
+        const it = items[n - 1];
+        if (count) count.textContent = `Step ${n} of ${items.length}`;
+        if (caption && it) {
+          const title = document.createElement('b'), text = document.createElement('span');
+          title.textContent = it.querySelector('h3')?.textContent ?? '';
+          text.textContent = it.querySelector('p')?.textContent ?? '';
+          caption.replaceChildren(title, text);
+        }
+        centre(n);
         if (travel && !reduce) packets(n);
       };
       const showAll = () => {
         current = 0;
         els.forEach((el) => { el.classList.remove('now'); if (!reduce) gsap.to(el, { opacity: 1, duration: 0.3, overwrite: true }); });
         items.forEach((li) => { li.classList.remove('active'); li.removeAttribute('aria-current'); });
+        if (count) count.textContent = `All ${items.length} steps`;
+        if (caption) caption.textContent = '';
       };
 
-      // Enter the section: start at step 1. Leave below it: show the complete diagram.
-      ScrollTrigger.create({ trigger: root, start: 'top 85%', end: 'bottom top', onEnter: () => current || show(1), onEnterBack: () => show(items.length, false), onLeave: showAll, onLeaveBack: showAll });
+      const stop = () => {
+        playing?.kill(); playing = null;
+        playBtn?.setAttribute('aria-pressed', 'false');
+        if (playBtn) playBtn.textContent = '▶ Play flow';
+      };
+      // Scroll position drives the diagram, but never fights a running "Play flow".
+      // A click also nudges the page (focus / scroll into view); ignore scroll-driven updates briefly so it sticks.
+      let lockUntil = 0;
+      const fromScroll = (n: number) => { if (!playing && performance.now() > lockUntil) show(n); };
+
+      // 1. Scroll: current step follows the walkthrough, in both directions.
+      ScrollTrigger.create({ trigger: root, start: 'top 85%', end: 'bottom top',
+        onEnter: () => { if (!playing && !current) show(1); }, onEnterBack: () => { if (!playing) show(items.length, false); },
+        onLeave: () => { if (!playing) showAll(); }, onLeaveBack: () => { if (!playing) showAll(); } });
+      items.forEach((li, i) => ScrollTrigger.create({ trigger: li, start: 'top 62%', end: 'bottom 62%', onEnter: () => fromScroll(i + 1), onEnterBack: () => fromScroll(i + 1) }));
+
+      // 2. Click or press Enter/Space on a step to jump to it and replay its packets.
       items.forEach((li, i) => {
-        ScrollTrigger.create({
-          trigger: li, start: 'top 62%', end: 'bottom 62%',
-          onEnter: () => show(i + 1), onEnterBack: () => show(i + 1),
-        });
+        const go = () => { stop(); lockUntil = performance.now() + 900; show(i + 1); };
+        const onClick = () => go();
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } };
+        li.addEventListener('click', onClick); li.addEventListener('keydown', onKey);
+        cleanups.push(() => { li.removeEventListener('click', onClick); li.removeEventListener('keydown', onKey); });
       });
+
+      // 3. Play flow: run every step in order, about 1.5 s each.
+      const onPlay = () => {
+        if (playing) { stop(); return; }
+        playBtn?.setAttribute('aria-pressed', 'true');
+        if (playBtn) playBtn.textContent = '❚❚ Pause';
+        let n = current >= items.length || current === 0 ? 0 : current;
+        const tick = () => {
+          n += 1;
+          if (n > items.length) { stop(); show(items.length, false); return; }
+          show(n);
+          playing = gsap.delayedCall(reduce ? 1.2 : 1.5, tick);
+        };
+        playing = gsap.delayedCall(0, tick);
+      };
+      playBtn?.addEventListener('click', onPlay);
+      cleanups.push(() => { playBtn?.removeEventListener('click', onPlay); stop(); });
+
       if (!reduce) els.forEach((el) => gsap.set(el, { opacity: 1 }));
     });
   });
-  return () => ctx.revert();
+  return () => { cleanups.forEach((fn) => fn()); ctx.revert(); };
 }

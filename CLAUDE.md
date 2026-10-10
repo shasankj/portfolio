@@ -121,6 +121,8 @@ The Architecture section animates as the reader scrolls the walkthrough: nodes a
 
 **Mermaid**: `src/diagrams/<diagram>.mmd` (a `flowchart`), used when no `.svg` of that name exists. Add one comment line mapping node ids to steps: `%% steps: A=1 B=2 C=3 D=3`. Edges take the step of the node they point into. Use simple alphanumeric node ids. Rendered at build time (needs the browser env above) and themed in `global.css` (`.mermaid-diagram`). Fenced ```` ```mermaid ```` blocks in an MDX body also render at build time, but those are static (not step-animated).
 
+The diagram is pinned while the walkthrough scrolls beneath it (height-capped, scrolls sideways on phones and re-centres on the current step), shows the current step's title and text as a caption, and has a "Play flow" button; steps can also be clicked. Authors need to do nothing extra for this.
+
 Check every diagram: the build passes, no label overflows its box, the diagram reads correctly in light and dark, and the last node's step matches the last walkthrough entry.
 
 ## Add / update workflows

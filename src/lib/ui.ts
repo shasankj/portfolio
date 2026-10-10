@@ -12,9 +12,18 @@ export function setReducedMotion(on: boolean) {
   document.dispatchEvent(new Event('motionchange'));
 }
 
+/** True when the operating system / browser asks for reduced motion. The manual toggle cannot override it. */
+export const systemReducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 export function syncMotionButtons() {
-  const on = root().dataset.motion === 'reduce';
-  document.querySelectorAll<HTMLElement>('[data-motion-toggle]').forEach((b) => b.setAttribute('aria-pressed', String(on)));
+  const manual = root().dataset.motion === 'reduce';
+  const system = systemReducedMotion();
+  document.querySelectorAll<HTMLButtonElement>('[data-motion-toggle]').forEach((b) => {
+    b.setAttribute('aria-pressed', String(manual || system));
+    b.disabled = system;
+    b.textContent = system ? 'Reduce motion: on (system setting)' : 'Reduce motion';
+    b.title = system ? 'Your device has Reduce Motion turned on, so animations are off. Turn it off in your system accessibility settings.' : '';
+  });
 }
 
 export const isDark = () => (root().dataset.theme ? root().dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches);

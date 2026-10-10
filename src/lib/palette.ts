@@ -1,6 +1,6 @@
 // Command palette (Cmd/Ctrl+K). Lazy-loaded on first open. Native <dialog> gives focus trapping and Esc.
 import { navigate } from 'astro:transitions/client';
-import { isDark, reducedMotion, setReducedMotion, toast, toggleTheme } from './ui';
+import { isDark, reducedMotion, setReducedMotion, systemReducedMotion, toast, toggleTheme } from './ui';
 
 interface Item { group: string; label: string; hint?: string; href?: string; action?: string }
 interface Data { items: Item[]; email: string; resume: string }
@@ -15,7 +15,7 @@ function allItems(): Item[] {
   data ??= JSON.parse(document.getElementById('palette-data')!.textContent!);
   return data!.items.map((i) => {
     if (i.action === 'theme') return { ...i, label: isDark() ? 'Switch to light theme' : 'Switch to dark theme' };
-    if (i.action === 'motion') return { ...i, label: reducedMotion() ? 'Turn reduced motion off' : 'Turn reduced motion on' };
+    if (i.action === 'motion') return { ...i, label: systemReducedMotion() ? 'Reduced motion is on (system setting)' : reducedMotion() ? 'Turn reduced motion off' : 'Turn reduced motion on' };
     return i;
   });
 }
@@ -75,7 +75,10 @@ function run(item: Item) {
   }
   switch (item.action) {
     case 'theme': toggleTheme(); break;
-    case 'motion': setReducedMotion(!reducedMotion()); toast(reducedMotion() ? 'Reduced motion on' : 'Reduced motion off'); break;
+    case 'motion':
+      if (systemReducedMotion()) { toast('Reduced motion is on in your system settings'); break; }
+      setReducedMotion(!reducedMotion()); toast(reducedMotion() ? 'Reduced motion on' : 'Reduced motion off');
+      break;
     case 'email':
       navigator.clipboard?.writeText(data!.email).then(() => toast('Email copied'), () => toast(data!.email));
       break;

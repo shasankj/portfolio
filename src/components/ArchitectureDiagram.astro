@@ -14,11 +14,19 @@ const svg = diagram ? (files[`../diagrams/${diagram}.svg`] ?? (mmd ? await rende
 ---
 {svg ? (
   <div class="arch" data-arch>
-    <div class="diagram-wrap">
-      <div role="img" aria-label={diagramAlt ?? `Architecture diagram of ${title}`} set:html={svg} />
+    <!-- The diagram stays pinned while you read the steps, so you always see what is lit. -->
+    <div class="arch-pin">
+      <div class="arch-bar" hidden>
+        <button class="btn sm" type="button" data-play aria-pressed="false">▶ Play flow</button>
+        <span class="eyebrow" data-caption-count aria-hidden="true"></span>
+      </div>
+      <div class="diagram-wrap">
+        <div role="img" aria-label={diagramAlt ?? `Architecture diagram of ${title}`} set:html={svg} />
+      </div>
+      <p class="arch-caption" data-caption aria-hidden="true"></p>
     </div>
     <ol class="steps" data-steps>
-      {steps.map((s, i) => <li data-step-index={i + 1}><h3>{s.title}</h3><p>{s.text}</p></li>)}
+      {steps.map((s, i) => <li data-step-index={i + 1} tabindex="0"><h3>{s.title}</h3><p>{s.text}</p></li>)}
     </ol>
   </div>
 ) : (

@@ -183,11 +183,20 @@ html:not(.js) .filters { display: none; }
 
 /* ===== Architecture diagram + walkthrough ===== */
 .arch { display: grid; gap: 2rem; grid-template-columns: minmax(0, 1fr); }
-/* Wide diagram on top (pinned on tall desktop screens), walkthrough scrolls beneath it. */
-@media (min-width: 64rem) and (min-height: 760px) { .arch .diagram-wrap { position: sticky; top: 4.75rem; z-index: 5; } }
+/* The diagram is pinned on every screen size while the walkthrough scrolls beneath it. It is height-capped so the
+   steps always have room, and anything wider than the screen scrolls sideways inside its box (auto-centred on the current step). */
+.arch-pin { position: sticky; top: 4.1rem; z-index: 5; background: var(--bg); padding-block: 0.5rem; }
+@media (max-width: 640px) { .arch-pin { top: 0; } }
+.arch-bar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.5rem; }
+.arch-bar[hidden] { display: none !important; }
+html:not(.js) .arch-bar { display: none; }
+.arch-caption { margin: 0.5rem 0 0; font-size: 0.92rem; color: var(--muted); min-height: 2.9em; line-height: 1.45; }
+.arch-caption b { color: var(--ink); font-family: var(--font-display); letter-spacing: -0.02em; margin-right: 0.35rem; }
 .arch .steps { max-width: 46rem; }
-.diagram-wrap { border: 1px solid var(--line); background: var(--surface); padding: 1rem; overflow-x: auto; }
-.diagram { display: block; width: 100%; min-width: 34rem; height: auto; font-family: var(--font-display); }
+.steps li { cursor: pointer; }
+.steps li:hover { background: color-mix(in srgb, var(--surface) 60%, transparent); }
+.diagram-wrap { border: 1px solid var(--line); background: var(--surface); padding: 0.75rem 1rem; overflow-x: auto; }
+.diagram { display: block; width: 100%; min-width: 34rem; height: auto; max-height: min(40vh, 22rem); font-family: var(--font-display); }
 .diagram .node rect { fill: var(--bg); stroke: var(--ink); stroke-width: 1.5; }
 .diagram .node.now rect { stroke: var(--project-accent); stroke-width: 3; }
 .diagram .edge.now { stroke: var(--project-accent); stroke-width: 2.25; }

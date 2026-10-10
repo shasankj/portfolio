@@ -129,6 +129,9 @@ const paletteJson = JSON.stringify({ items, email: site.email, resume: u(site.re
       // Warm the palette chunk so the first Cmd/Ctrl+K opens instantly.
       'requestIdleCallback' in window ? requestIdleCallback(() => import('../lib/palette')) : setTimeout(() => import('../lib/palette'), 2000);
 
+      // If the system Reduce Motion setting changes while the page is open, follow it.
+      matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', () => { syncMotionButtons(); document.dispatchEvent(new Event('motionchange')); });
+
       onPage(() => { syncMotionButtons(); initInteractions(); });
       document.addEventListener('motionchange', () => initInteractions());
     </script>
